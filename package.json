@@ -1,0 +1,80 @@
+{
+  "name": "@strangelooprun/minerva-publish",
+  "version": "0.1.0",
+  "description": "Static site generator and package for converting Markdown files to HTML.",
+  "main": "./dist/index.js",
+  "types": "./dist/index",
+  "bin": {
+    "minerva": "./bin/minerva.js"
+  },
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "all": true,
+    "check-coverage": true,
+    "lines": 0,
+    "statements": 0,
+    "functions": 0,
+    "branches": 0,
+    "exclude": [
+      "**/example/**/*.js",
+      "**/example/**/*.ts",
+      "**/*.d.ts",
+      "**/*.test.js"
+    ],
+    "reporter": [
+      "text",
+      "cobertura",
+      "html"
+    ],
+    "report-dir": "./.nyc_output/coverage"
+  },
+  "license": "ISC",
+  "contributors": [
+    "Michael Szul <michael@szul.us>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/strangelooprun/minerva-publish.git"
+  },
+  "bugs": {
+    "url": "https://github.com/strangelooprun/minerva-publish/issues"
+  },
+  "homepage": "https://github.com/strangelooprun/minerva-publish#readme",
+  "scripts": {
+    "build": "tsc",
+    "test": "nyc mocha ./**/test/*.test.js --ignore ./**/node_modules/** --exit",
+    "eslint": "eslint ./src/*.ts ./src/**/*.ts",
+    "eslint-fix": "eslint ./src/*.ts ./src/**/*.ts --fix"
+  },
+  "dependencies": {
+    "@strangelooprun/proto": "^1.0.0",
+    "fs-extra": "^9.0.0",
+    "glob": "^7.1.6",
+    "gray-matter": "^4.0.2",
+    "handlebars": "^4.7.6",
+    "js-yaml": "^3.13.1",
+    "showdown": "^1.9.1",
+    "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/fs-extra": "^8.1.0",
+    "@types/glob": "^7.1.1",
+    "@types/handlebars": "^4.1.0",
+    "@types/js-yaml": "^3.12.3",
+    "@types/node": "^13.13.5",
+    "@types/showdown": "^1.9.3",
+    "@types/yargs": "^15.0.4",
+    "@typescript-eslint/eslint-plugin": "^2.32.0",
+    "@typescript-eslint/parser": "^2.32.0",
+    "eslint": "^7.0.0",
+    "exorcist": "^1.0.1",
+    "madge": "^3.9.0",
+    "mocha": "^7.1.2",
+    "mocha-junit-reporter": "^1.23.3",
+    "nyc": "^15.0.1",
+    "rewire": "^5.0.0",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.8.3"
+  }
+}

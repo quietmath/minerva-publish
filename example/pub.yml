@@ -1,0 +1,20 @@
+source: src
+dest: public
+layout: templates/layouts/_layout.hbs
+assets: [css, images]
+output:
+  outline: true
+  includeFoldersInURL: false
+  includeDateInURL: false
+  list:
+    size: 10
+    order:
+      orderBy: date
+      direction: desc
+    templates: [templates/views/list.hbs]
+  rss: true
+  podcast:
+    folder: podcast
+globals:
+  baseURL:
+  baseFolder: https://learn.med.virginia.edu
