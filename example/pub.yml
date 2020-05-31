@@ -16,5 +16,4 @@ output:
   podcast:
     folder: podcast
 globals:
-  baseURL:
-  baseFolder: https://learn.med.virginia.edu
+  name: test
