@@ -22,7 +22,7 @@ else {
             .then(() => {
                 pub.outline(yaml.output?.outline);
                 pub.toc(yaml.output?.outline);
-                //pub.list(yaml.output?.list);
+                pub.list(yaml.output?.list);
                 pub.pages();
                 pub.copy(yaml.assets);
             }).catch((err) => {

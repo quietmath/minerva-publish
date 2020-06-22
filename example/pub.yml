@@ -1,6 +1,6 @@
-source: src
+source: source-docs
 dest: public
-layout: templates/layouts/_layout.hbs
+layout: templates/_layout.hbs
 assets: [css, images]
 output:
   outline: true
@@ -11,7 +11,7 @@ output:
     order:
       orderBy: date
       direction: desc
-    templates: [templates/views/list.hbs]
+    templates: [templates/list.hbs]
   rss: true
   podcast:
     folder: podcast

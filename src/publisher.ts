@@ -1,3 +1,5 @@
+/* eslint-disable no-inner-declarations */
+/* eslint-disable @typescript-eslint/no-this-alias */
 import * as glob from 'glob';
 import * as fs from 'fs-extra';
 import { Converter } from 'showdown';
@@ -78,7 +80,7 @@ export class Publisher {
     public outline(outline: boolean): void {
         const self: Publisher = this;
         if(outline) {
-            function addHashes(key: string, offset: number) {
+            function addHashes(key: string, offset: number): string {
                 const file: string = self.files.find((e: string) => e.indexOf(key) !== -1);
                 const range: number = file.split('/').length + offset;
                 for(let i = 0; i < range; i++) {
