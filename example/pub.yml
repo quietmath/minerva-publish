@@ -1,7 +1,7 @@
 source: source-docs
 dest: public
-layout: templates/_layout.hbs
-assets: [css, images]
+layout: templates/layout.hbs
+assets: [source-docs/css, source-docs/images]
 output:
   outline: true
   includeFoldersInURL: false

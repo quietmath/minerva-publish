@@ -6,6 +6,7 @@ import { Converter } from 'showdown';
 import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
 import { s } from '@strangelooprun/proto';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { listConfig } from './schema';
 
 /**
