@@ -117,21 +117,21 @@ export class Publisher {
             const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
             const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
             const templates = listConfig.templates;
-            
-            const files = this.files;
+            const files = this.files.filter((e: string) => e.endsWith('.md'));
 
             templates.forEach((tmpl: string) => {
-                const tmplName = tmpl.replace('.hbs', '.html').split('/')[-1]; //Will -1 work here?
+                const tmplNameParts = tmpl.replace('.hbs', '.html').split('/');
+                const tmplName = tmplNameParts.pop();
                 fs.readFile(`${ process.cwd() }/${ tmpl }`, (err: Error, data: Buffer) => {
                     if(err != null) {
-                        console.error(`Enable to open file ${ process.cwd() }/${ tmpl }: ${ err }`);
+                        console.error(`Unable to open file ${ process.cwd() }/${ tmpl }: ${ err }`);
                     }
                     else {
                         const tmplData = [];
                         files.slice(0, (pageSize)).forEach((file: string) => {
                             fs.readFile(`${ process.cwd() }/${ file }`, (err: Error, f: Buffer) => {
                                 if(err != null) {
-                                    console.error(`Enable to open file ${ process.cwd() }/${ file }: ${ err }`);
+                                    console.error(`Unable to open file ${ process.cwd() }/${ file }: ${ err }`);
                                 }
                                 else {
                                     const md = f.toString('utf-8');
@@ -157,7 +157,7 @@ export class Publisher {
         if(outline) {
             fs.readFile(`${ process.cwd() }/${ this.source }/SUMMARY.md`, (err: Error, data: Buffer) => {
                 if(err != null) {
-                    console.error(`Enable to open file ${ process.cwd() }/${ this.source }/SUMMARY.md: ${ err }`);
+                    console.error(`Unable to open file ${ process.cwd() }/${ this.source }/SUMMARY.md: ${ err }`);
                 }
                 else {
                     let md = data.toString('utf-8');

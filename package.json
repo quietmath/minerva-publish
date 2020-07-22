@@ -1,5 +1,5 @@
 {
-  "name": "@strangelooprun/minerva-publish",
+  "name": "@quietmath/minerva-publish",
   "version": "0.1.0",
   "description": "Static site generator and package for converting Markdown files to HTML.",
   "main": "./dist/index.js",
