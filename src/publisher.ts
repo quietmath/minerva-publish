@@ -129,17 +129,15 @@ export class Publisher {
                     else {
                         const tmplData = [];
                         files.slice(0, (pageSize)).forEach((file: string) => {
-                            fs.readFile(`${ process.cwd() }/${ file }`, (err: Error, f: Buffer) => {
-                                if(err != null) {
-                                    console.error(`Unable to open file ${ process.cwd() }/${ file }: ${ err }`);
-                                }
-                                else {
-                                    const md = f.toString('utf-8');
-                                    const gray = matter(md);
-                                    gray.data['link'] = this.getOutputLink(file);
-                                    tmplData.push(gray.data);
-                                }
-                            });
+                            try {
+                                const md = fs.readFileSync(`${ process.cwd() }/${ file }`, { encoding: 'utf-8' });
+                                const gray = matter(md);
+                                gray.data['link'] = this.getOutputLink(file);
+                                tmplData.push(gray.data);
+                            }
+                            catch(e) {
+                                console.error(`Unable to open file ${ process.cwd() }/${ file }: ${ e }`);
+                            }
                         });
                         hb.registerPartial('layout', fs.readFileSync(`${ process.cwd() }/${ this.layout }`, 'utf8'));
                         const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
@@ -224,12 +222,15 @@ export class Publisher {
     public async copy(assets: string[]): Promise<void> {
         await fs.ensureDir(`${ process.cwd() }/${ this.destination }`);
         assets.forEach((asset) => {
-            fs.copy(`${ process.cwd() }/${ asset }`, `${ process.cwd() }/${ this.destination }/${ asset }`)
-                .then(() => console.log(`Finished copying to ${ process.cwd() }/${ this.destination }/${ asset }`))
-                .catch(err => console.error(`Failed to copy to ${ process.cwd() }/${ this.destination }/${ asset } ${ err }`));
+            const asst = asset.split('/').pop();
+            fs.copy(`${ process.cwd() }/${ asset }`, `${ process.cwd() }/${ this.destination }/${ asst }`)
+                .then(() => console.log(`Finished copying to ${ process.cwd() }/${ this.destination }/${ asst }`))
+                .catch(err => console.error(`Failed to copy to ${ process.cwd() }/${ this.destination }/${ asst } ${ err }`));
         });
-        fs.copyFile(`${ process.cwd() }/serve.json`, `${ process.cwd() }/${ this.destination }/serve.json`)
-            .then(() => console.log(`Finished copying to ${ process.cwd() }/serve.json`))
-            .catch(err => console.error(`Failed to copy to ${ process.cwd() }/${ this.destination }/serve.json ${ err }`));
+        if(fs.existsSync(`${ process.cwd() }/serve.json`)) {
+            fs.copyFile(`${ process.cwd() }/serve.json`, `${ process.cwd() }/${ this.destination }/serve.json`)
+                .then(() => console.log(`Finished copying to ${ process.cwd() }/serve.json`))
+                .catch(err => console.error(`Failed to copy to ${ process.cwd() }/${ this.destination }/serve.json ${ err }`));
+        }
     }
 }
