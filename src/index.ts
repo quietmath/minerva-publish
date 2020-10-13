@@ -2,7 +2,7 @@ import * as yargs from 'yargs';
 import * as fs from 'fs';
 import { Publisher } from './publisher';
 import { parseYAML } from './parser';
-import { pubConfig } from './schema';
+import { PubConfig } from './schema';
 
 /**
  * @module strangelooprun/minerva-publish
@@ -16,14 +16,15 @@ else {
     const data = fs.readFileSync(yargs.argv.f as string, 'utf-8');
     if(data != null) {
         console.log(`Parsing file ${ yargs.argv.f }`);
-        const yaml: pubConfig = parseYAML(data);
+        const yaml: PubConfig = parseYAML(data);
         const pub = new Publisher(yaml.source, yaml.dest, yaml.layout, yaml.globals);
         pub.sanity()
-            .then(() => {
+            .then(async () => {
                 pub.outline(yaml.output?.outline);
                 pub.toc(yaml.output?.outline);
                 pub.list(yaml.output?.list);
-                pub.pages();
+                pub.view(yaml.output?.view);
+                pub.static(yaml.output?.static);
                 pub.copy(yaml.assets);
             }).catch((err) => {
                 console.error(`Could not publish files: ${ err }`);

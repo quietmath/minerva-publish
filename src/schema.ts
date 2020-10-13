@@ -2,29 +2,39 @@
  * @module strangelooprun/minerva-publish
  */
 
-export interface pubConfig {
+export interface PubConfig {
     source: string;
     dest: string;
     layout: string;
     assets?: string[];
-    output?: outputConfig;
+    output?: OutputConfig;
     globals?: any;
 }
 
-export interface outputConfig {
+export interface OutputConfig {
     outline?: boolean;
     includeFoldersInURL?: boolean;
     includeDateInURL?: boolean;
-    list?: listConfig;
+    list?: ListConfig;
+    view?: ViewConfig;
+    static?: StaticConfig;
 }
 
-export interface listConfig {
+export interface ListConfig {
     size?: number;
-    order?: orderConfig;
+    order?: OrderConfig;
     templates: string[];
 }
 
-export interface orderConfig {
+export interface ViewConfig {
+    templates: string[];
+}
+
+export interface StaticConfig {
+    templates: string[];
+}
+
+export interface OrderConfig {
     orderBy: 'title' | 'date';
     direction: 'asc' | 'desc';
 }

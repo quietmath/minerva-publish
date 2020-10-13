@@ -7,7 +7,7 @@ import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
 import { s } from '@strangelooprun/proto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { listConfig } from './schema';
+import { ListConfig, ViewConfig, StaticConfig } from './schema';
 
 /**
  * @module strangelooprun/minerva-publish
@@ -111,7 +111,7 @@ export class Publisher {
                 .catch((err) => console.error(`Error writing summary file: ${ err }`));
         }
     }
-    public list(listConfig: listConfig): void {
+    public list(listConfig: ListConfig): void {
         if(listConfig) {
             const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
             const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
@@ -175,7 +175,7 @@ export class Publisher {
             });
         }
     }
-    public pages(): void {
+    public view(viewConfig: ViewConfig): void {
         const c = new Converter({
             ghCompatibleHeaderId: true,
             parseImgDimensions: true,
@@ -185,15 +185,11 @@ export class Publisher {
             tasklists: true,
             requireSpaceBeforeHeadingText: true
         });
-    
-        hb.registerPartial('layout', fs.readFileSync(`${ process.cwd() }/${ this.layout }`, 'utf8'));
-    
-        //TODO Ignore assets in glob string. Also add ignore list to YAML file
-        glob(`${ this.source }/**/*.md`, { 'ignore': ['**/node_modules/**', `**/${ this.destination }/**`, '**/SUMMARY.md'] }, async (err, files) => {
-            if(err != null) {
-                console.error(`An error has occurred: ${ err }`);
-            }
-            await fs.ensureDir(`${ process.cwd() }/${ this.destination }`);
+        const templates = viewConfig.templates;
+        const files = this.files.filter((e: string) => e.endsWith('.md'));
+        //await fs.ensureDir(`${ process.cwd() }/${ this.destination }`);
+        
+        templates.forEach((tmpl: string) => {
             files.forEach(async (f) => {
                 console.log(`Publishing file ${ f }`);
                 const outputFile = `${ process.cwd() }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
@@ -206,9 +202,38 @@ export class Publisher {
                     else {
                         const md = data.toString('utf-8');
                         const gray = matter(md);
-                        const html = c.makeHtml(gray.content);
-                        const template = hb.compile('{{#> layout }}' + html + '{{/layout}}', { });
+                        gray.data.content = c.makeHtml(gray.content);
+                        const template = hb.compile('{{#> layout }}' + tmpl + '{{/layout}}', { });
                         const output = template({ ...this.globals, ...gray.data });
+                        fs.writeFile(`${ outputFile }`, output, (e) => {
+                            if(e != null) {
+                                console.error(`Failed to write file ${ e }`);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    }
+    public static(staticConfig: StaticConfig): void {
+        const templates = staticConfig.templates;
+        const files = this.files.filter((e: string) => e.endsWith('.html'));
+        //await fs.ensureDir(`${ process.cwd() }/${ this.destination }`);
+        
+        templates.forEach((tmpl: string) => {
+            files.forEach(async (f) => {
+                console.log(`Publishing file ${ f }`);
+                const outputFile = `${ process.cwd() }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
+                const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
+                await fs.ensureDir(outputDir);
+                fs.readFile(`${ process.cwd() }/${ f }`, (err, data) => {
+                    if(err != null) {
+                        console.error(`Error reading file: ${ err }`);
+                    }
+                    else {
+                        const html = data.toString('utf-8');
+                        const template = hb.compile('{{#> layout }}' + tmpl + '{{/layout}}', { });
+                        const output = template({ ...this.globals, ...{ content: html } });
                         fs.writeFile(`${ outputFile }`, output, (e) => {
                             if(e != null) {
                                 console.error(`Failed to write file ${ e }`);
