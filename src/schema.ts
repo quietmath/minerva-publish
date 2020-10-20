@@ -1,8 +1,9 @@
 /**
- * @module strangelooprun/minerva-publish
+ * @module quietmath/minerva-publish
  */
 
 export interface PubConfig {
+    path: 'absolute' | 'relative';
     source: string;
     dest: string;
     layout: string;

@@ -1,7 +1,7 @@
 import { load, JSON_SCHEMA } from 'js-yaml';
 
 /**
- * @module strangelooprun/minerva-publish
+ * @module quietmath/minerva-publish
  */
 
 export function parseYAML(yaml: string): any {

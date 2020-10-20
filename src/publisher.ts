@@ -5,23 +5,30 @@ import * as fs from 'fs-extra';
 import { Converter } from 'showdown';
 import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
-import { s } from '@strangelooprun/proto';
+import { s } from '@quietmath/proto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ListConfig, ViewConfig, StaticConfig } from './schema';
 
 /**
- * @module strangelooprun/minerva-publish
+ * @module quietmath/minerva-publish
  */
 
 export class Publisher {
     private files: string[];
     private tree: any;
     private summary: string;
+    public prefix: string;
     public source: string;
     public destination: string;
     public layout: string;
     public globals: any;
-    constructor(source: string, dest: string, layout: string, globals: any = {}) {
+    constructor(prefix: string, source: string, dest: string, layout: string, globals: any = {}) {
+        if(this.prefix === 'absolute') {
+            this.prefix = prefix;
+        }
+        else {
+            this.prefix = process.cwd();
+        }
         this.source = source;
         this.destination = dest;
         this.layout = layout;
@@ -32,7 +39,7 @@ export class Publisher {
     }
     private getAllFiles(): Promise<string[]> {
         return new Promise((resolve, reject): any => {
-            glob(`${ this.source }/**/**`, { 'ignore': ['**/node_modules/**', `**/${ this.destination }/**`, '**/SUMMARY.md'], mark: true }, async (err: Error, files: string[]) => {
+            glob(`${ this.prefix }/${ this.source }/**/**`, { 'ignore': ['**/node_modules/**', `**/${ this.prefix }/${ this.destination }/**`, '**/SUMMARY.md'], mark: true }, async (err: Error, files: string[]) => {
                 if(err != null) {
                     reject(`An error has occurred: ${ err }`);
                 }
@@ -106,45 +113,45 @@ export class Publisher {
             this.summary = '# Summary\n\n';
             const startKey = Object.keys(this.tree[0]).find((e: string) => e === this.source);
             buildOutline(this.tree[0][startKey]);
-            fs.writeFile(`${ process.cwd() }/${ this.source }/SUMMARY.md`, this.summary, { encoding:'utf-8' })
-                .then(() => console.log(`Wrote summary file to ${ `${ process.cwd() }/${ this.source }/SUMMARY.md` }`))
+            fs.writeFile(`${ this.prefix }/${ this.source }/SUMMARY.md`, this.summary, { encoding:'utf-8' })
+                .then(() => console.log(`Wrote summary file to ${ `${ this.prefix }/${ this.source }/SUMMARY.md` }`))
                 .catch((err) => console.error(`Error writing summary file: ${ err }`));
         }
     }
     public list(listConfig: ListConfig): void {
         if(listConfig) {
             const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
-            const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
-            const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
+            //const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
+            //const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
             const templates = listConfig.templates;
             const files = this.files.filter((e: string) => e.endsWith('.md'));
 
             templates.forEach((tmpl: string) => {
                 const tmplNameParts = tmpl.replace('.hbs', '.html').split('/');
                 const tmplName = tmplNameParts.pop();
-                fs.readFile(`${ process.cwd() }/${ tmpl }`, (err: Error, data: Buffer) => {
+                fs.readFile(`${ this.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
                     if(err != null) {
-                        console.error(`Unable to open file ${ process.cwd() }/${ tmpl }: ${ err }`);
+                        console.error(`Unable to open file ${ this.prefix }/${ tmpl }: ${ err }`);
                     }
                     else {
                         const tmplData = [];
                         files.slice(0, (pageSize)).forEach((file: string) => {
                             try {
-                                const md = fs.readFileSync(`${ process.cwd() }/${ file }`, { encoding: 'utf-8' });
+                                const md = fs.readFileSync(`${ this.prefix }/${ file }`, { encoding: 'utf-8' });
                                 const gray = matter(md);
                                 gray.data['link'] = this.getOutputLink(file);
                                 tmplData.push(gray.data);
                             }
                             catch(e) {
-                                console.error(`Unable to open file ${ process.cwd() }/${ file }: ${ e }`);
+                                console.error(`Unable to open file ${ this.prefix }/${ file }: ${ e }`);
                             }
                         });
-                        hb.registerPartial('layout', fs.readFileSync(`${ process.cwd() }/${ this.layout }`, 'utf8'));
+                        hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
                         const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
                         const output = template({ posts: tmplData });
 
-                        fs.writeFile(`${ process.cwd() }/${ this.destination }/${ tmplName }`, output, { encoding:'utf-8' })
-                            .then(() => console.log(`Wrote partial to ${ `${ process.cwd() }/${ this.destination }/${ tmplName }` }`))
+                        fs.writeFile(`${ this.prefix }/${ this.destination }/${ tmplName }`, output, { encoding:'utf-8' })
+                            .then(() => console.log(`Wrote partial to ${ `${ this.prefix }/${ this.destination }/${ tmplName }` }`))
                             .catch((err) => console.error(`Error writing partial: ${ err }`));
                     }
                 });
@@ -153,9 +160,9 @@ export class Publisher {
     }
     public toc(outline: boolean): void { //Change summary links to point to HTML links and output HTML
         if(outline) {
-            fs.readFile(`${ process.cwd() }/${ this.source }/SUMMARY.md`, (err: Error, data: Buffer) => {
+            fs.readFile(`${ this.prefix }/${ this.source }/SUMMARY.md`, (err: Error, data: Buffer) => {
                 if(err != null) {
-                    console.error(`Unable to open file ${ process.cwd() }/${ this.source }/SUMMARY.md: ${ err }`);
+                    console.error(`Unable to open file ${ this.prefix }/${ this.source }/SUMMARY.md: ${ err }`);
                 }
                 else {
                     let md = data.toString('utf-8');
@@ -168,8 +175,8 @@ export class Publisher {
                     const template = hb.compile(html);
                     const output = template({ });
                     
-                    fs.writeFile(`${ process.cwd() }/${ this.destination }/TOC.html`, output, { encoding:'utf-8' })
-                        .then(() => console.log(`Wrote TOC file to ${ `${ process.cwd() }/${ this.destination }/TOC.html` }`))
+                    fs.writeFile(`${ this.prefix }/${ this.destination }/TOC.html`, output, { encoding:'utf-8' })
+                        .then(() => console.log(`Wrote TOC file to ${ `${ this.prefix }/${ this.destination }/TOC.html` }`))
                         .catch((err) => console.error(`Error writing TOC: ${ err }`));
                 }
             });
@@ -187,15 +194,15 @@ export class Publisher {
         });
         const templates = viewConfig.templates;
         const files = this.files.filter((e: string) => e.endsWith('.md'));
-        //await fs.ensureDir(`${ process.cwd() }/${ this.destination }`);
+        //await fs.ensureDir(`${ this.prefix }/${ this.destination }`);
         
         templates.forEach((tmpl: string) => {
             files.forEach(async (f) => {
                 console.log(`Publishing file ${ f }`);
-                const outputFile = `${ process.cwd() }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
+                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
                 const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
                 await fs.ensureDir(outputDir);
-                fs.readFile(`${ process.cwd() }/${ f }`, (err, data) => {
+                fs.readFile(`${ this.prefix }/${ f }`, (err, data) => {
                     if(err != null) {
                         console.error(`Error reading file: ${ err }`);
                     }
@@ -218,15 +225,15 @@ export class Publisher {
     public static(staticConfig: StaticConfig): void {
         const templates = staticConfig.templates;
         const files = this.files.filter((e: string) => e.endsWith('.html'));
-        //await fs.ensureDir(`${ process.cwd() }/${ this.destination }`);
+        //await fs.ensureDir(`${ this.prefix }/${ this.destination }`);
         
         templates.forEach((tmpl: string) => {
             files.forEach(async (f) => {
                 console.log(`Publishing file ${ f }`);
-                const outputFile = `${ process.cwd() }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
+                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
                 const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
                 await fs.ensureDir(outputDir);
-                fs.readFile(`${ process.cwd() }/${ f }`, (err, data) => {
+                fs.readFile(`${ this.prefix }/${ f }`, (err, data) => {
                     if(err != null) {
                         console.error(`Error reading file: ${ err }`);
                     }
@@ -245,17 +252,17 @@ export class Publisher {
         });
     }
     public async copy(assets: string[]): Promise<void> {
-        await fs.ensureDir(`${ process.cwd() }/${ this.destination }`);
+        await fs.ensureDir(`${ this.prefix }/${ this.destination }`);
         assets.forEach((asset) => {
             const asst = asset.split('/').pop();
-            fs.copy(`${ process.cwd() }/${ asset }`, `${ process.cwd() }/${ this.destination }/${ asst }`)
-                .then(() => console.log(`Finished copying to ${ process.cwd() }/${ this.destination }/${ asst }`))
-                .catch(err => console.error(`Failed to copy to ${ process.cwd() }/${ this.destination }/${ asst } ${ err }`));
+            fs.copy(`${ this.prefix  }/${ asset }`, `${ this.prefix  }/${ this.destination }/${ asst }`)
+                .then(() => console.log(`Finished copying to ${ this.prefix  }/${ this.destination }/${ asst }`))
+                .catch(err => console.error(`Failed to copy to ${ this.prefix  }/${ this.destination }/${ asst } ${ err }`));
         });
-        if(fs.existsSync(`${ process.cwd() }/serve.json`)) {
-            fs.copyFile(`${ process.cwd() }/serve.json`, `${ process.cwd() }/${ this.destination }/serve.json`)
-                .then(() => console.log(`Finished copying to ${ process.cwd() }/serve.json`))
-                .catch(err => console.error(`Failed to copy to ${ process.cwd() }/${ this.destination }/serve.json ${ err }`));
+        if(fs.existsSync(`${ this.prefix  }/serve.json`)) {
+            fs.copyFile(`${ this.prefix  }/serve.json`, `${ this.prefix  }/${ this.destination }/serve.json`)
+                .then(() => console.log(`Finished copying to ${ this.prefix  }/serve.json`))
+                .catch(err => console.error(`Failed to copy to ${ this.prefix  }/${ this.destination }/serve.json ${ err }`));
         }
     }
 }

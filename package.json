@@ -34,12 +34,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/strangelooprun/minerva-publish.git"
+    "url": "git+https://github.com/quietmath/minerva-publish.git"
   },
   "bugs": {
-    "url": "https://github.com/strangelooprun/minerva-publish/issues"
+    "url": "https://github.com/quietmath/minerva-publish/issues"
   },
-  "homepage": "https://github.com/strangelooprun/minerva-publish#readme",
+  "homepage": "https://github.com/quietmath/minerva-publish#readme",
   "scripts": {
     "build": "tsc",
     "test": "nyc mocha ./**/test/*.test.js --ignore ./**/node_modules/** --exit",
@@ -47,7 +47,7 @@
     "eslint-fix": "eslint ./src/*.ts ./src/**/*.ts --fix"
   },
   "dependencies": {
-    "@strangelooprun/proto": "^1.0.0",
+    "@quietmath/proto": "^1.0.0",
     "fs-extra": "^9.0.0",
     "glob": "^7.1.6",
     "gray-matter": "^4.0.2",

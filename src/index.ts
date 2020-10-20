@@ -5,7 +5,7 @@ import { parseYAML } from './parser';
 import { PubConfig } from './schema';
 
 /**
- * @module strangelooprun/minerva-publish
+ * @module quietmath/minerva-publish
  */
 
 if(yargs.argv.f === undefined || (yargs.argv.f as string).trim() === '') {
@@ -17,7 +17,7 @@ else {
     if(data != null) {
         console.log(`Parsing file ${ yargs.argv.f }`);
         const yaml: PubConfig = parseYAML(data);
-        const pub = new Publisher(yaml.source, yaml.dest, yaml.layout, yaml.globals);
+        const pub = new Publisher(yaml.path, yaml.source, yaml.dest, yaml.layout, yaml.globals);
         pub.sanity()
             .then(async () => {
                 pub.outline(yaml.output?.outline);
