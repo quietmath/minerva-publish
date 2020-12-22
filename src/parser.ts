@@ -6,6 +6,7 @@ import { load, JSON_SCHEMA } from 'js-yaml';
 
 export function parseYAML(yaml: string): any {
     try {
+        console.info(`YAML string is ${ yaml }`);
         return load(yaml, { json: true, schema: JSON_SCHEMA });
     }
     catch (e) {

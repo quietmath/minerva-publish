@@ -12,12 +12,14 @@ if(yargs.argv.f === undefined || (yargs.argv.f as string).trim() === '') {
     console.error('Error: No file specified with the `--f` command line switch.');
 }
 else {
-    console.log(`Reading file ${ yargs.argv.f }`);
+    console.info(`Reading file ${ yargs.argv.f }`);
     const data = fs.readFileSync(yargs.argv.f as string, 'utf-8');
     if(data != null) {
-        console.log(`Parsing file ${ yargs.argv.f }`);
+        console.info(`Parsing file ${ yargs.argv.f }`);
         const yaml: PubConfig = parseYAML(data);
+        console.log('Creating publishing engine.');
         const pub = new Publisher(yaml.path, yaml.source, yaml.dest, yaml.layout, yaml.globals);
+        console.log('Publishing files');
         pub.sanity()
             .then(async () => {
                 pub.outline(yaml.output?.outline);
