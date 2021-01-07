@@ -27,7 +27,7 @@ else {
                 pub.list(yaml.output?.list);
                 pub.view(yaml.output?.view);
                 pub.static(yaml.output?.static);
-                pub.copy(yaml.assets);
+                await pub.copy(yaml.assets);
             }).catch((err) => {
                 console.error(`Could not publish files: ${ err }`);
             });

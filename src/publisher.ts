@@ -5,6 +5,7 @@ import * as fs from 'fs-extra';
 import { Converter } from 'showdown';
 import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
+import { blue, red } from 'chalk';
 import { s } from '@quietmath/proto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ListConfig, ViewConfig, StaticConfig } from './schema';
@@ -29,7 +30,7 @@ export class Publisher {
         }
         else {
             this.prefix = process.cwd();
-            console.info(`Prefix is ${ this.prefix }`);
+            console.info(blue(`Prefix is ${ this.prefix }`));
         }
         this.source = source;
         this.destination = dest;
@@ -38,7 +39,7 @@ export class Publisher {
     }
     private getOutputLink(path: string): string {
         path = path.replace(`${ this.source }/`, `${ this.destination }/`).replace('.md','.html');
-        console.info(`This output link path is ${ path }`);
+        console.info(blue(`This output link path is ${ path }`));
         return path;
     }
     private getAllFiles(): Promise<string[]> {
@@ -123,55 +124,55 @@ export class Publisher {
             buildOutline(this.tree[0][startKey]);
             fs.writeFile(`${ this.prefix }/${ this.source }/SUMMARY.md`, this.summary, { encoding:'utf-8' })
                 .then(() => console.log(`Wrote summary file to ${ `${ this.prefix }/${ this.source }/SUMMARY.md` }`))
-                .catch((err) => console.error(`Error writing summary file: ${ err }`));
+                .catch((err) => console.info(red(`Error writing summary file: ${ err }`)));
         }
     }
     public list(listConfig: ListConfig): void {
         console.log('Now running list configuration.');
         if(listConfig) {
             const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
-            console.info(`Current page size is ${ pageSize }`);
+            console.info(blue(`Current page size is ${ pageSize }`));
             //const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
             //const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
             const templates = listConfig.templates;
-            console.info(`Current list templates are ${ templates }`);
+            console.info(blue(`Current list templates are ${ templates }`));
             const files = this.files.filter((e: string) => e.endsWith('.md'));
-            console.info(`Current number of markdown files are ${ files.length }`);
+            console.info(blue(`Current number of markdown files are ${ files.length }`));
 
             templates.forEach((tmpl: string) => {
-                console.info(`Current template string is ${ tmpl }`);
+                console.info(blue(`Current template string is ${ tmpl }`));
                 const tmplNameParts = tmpl.replace('.hbs', '.html').split('/');
-                console.info(`Current template part replacement: ${ tmplNameParts }`);
+                console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
                 const tmplName = tmplNameParts.pop();
-                console.info(`Current template name is ${ tmplName }`);
-                console.info(`Current file to read is ${ this.prefix }/${ tmpl }`);
+                console.info(blue(`Current template name is ${ tmplName }`));
+                console.info(blue(`Current file to read is ${ this.prefix }/${ tmpl }`));
                 fs.readFile(`${ this.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
                     if(err != null) {
-                        console.error(`Unable to open file ${ this.prefix }/${ tmpl }: ${ err }`);
+                        console.info(red(`Unable to open file ${ this.prefix }/${ tmpl }: ${ err }`));
                     }
                     else {
                         const tmplData = [];
                         files.slice(0, (pageSize)).forEach((file: string) => {
                             try {
-                                console.info(`Current file is ${ this.prefix }/${ file }`);
+                                console.info(blue(`Current file is ${ this.prefix }/${ file }`));
                                 const md = fs.readFileSync(`${ this.prefix }/${ file }`, { encoding: 'utf-8' });
                                 const gray = matter(md);
                                 gray.data['link'] = this.getOutputLink(file);
                                 tmplData.push(gray.data);
                             }
                             catch(e) {
-                                console.error(`Unable to open file ${ this.prefix }/${ file }: ${ e }`);
+                                console.info(red(`Unable to open file ${ this.prefix }/${ file }: ${ e }`));
                             }
                         });
-                        console.info(`Current handlebar layout is ${ this.prefix }/${ this.layout }`);
+                        console.info(blue(`Current handlebar layout is ${ this.prefix }/${ this.layout }`));
                         hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
                         const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
                         const output = template({ posts: tmplData });
 
-                        console.info(`Writing to file ${ this.prefix }/${ this.destination }/${ tmplName }`);
+                        console.info(blue(`Writing to file ${ this.prefix }/${ this.destination }/${ tmplName }`));
                         fs.writeFile(`${ this.prefix }/${ this.destination }/${ tmplName }`, output, { encoding:'utf-8' })
                             .then(() => console.log(`Wrote partial to ${ `${ this.prefix }/${ this.destination }/${ tmplName }` }`))
-                            .catch((err) => console.error(`Error writing partial: ${ err }`));
+                            .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
                     }
                 });
             });
@@ -181,7 +182,7 @@ export class Publisher {
         if(outline) {
             fs.readFile(`${ this.prefix }/${ this.source }/SUMMARY.md`, (err: Error, data: Buffer) => {
                 if(err != null) {
-                    console.error(`Unable to open file ${ this.prefix }/${ this.source }/SUMMARY.md: ${ err }`);
+                    console.info(red(`Unable to open file ${ this.prefix }/${ this.source }/SUMMARY.md: ${ err }`));
                 }
                 else {
                     let md = data.toString('utf-8');
@@ -196,7 +197,7 @@ export class Publisher {
                     
                     fs.writeFile(`${ this.prefix }/${ this.destination }/TOC.html`, output, { encoding:'utf-8' })
                         .then(() => console.log(`Wrote TOC file to ${ `${ this.prefix }/${ this.destination }/TOC.html` }`))
-                        .catch((err) => console.error(`Error writing TOC: ${ err }`));
+                        .catch((err) => console.info(red(`Error writing TOC: ${ err }`)));
                 }
             });
         }
@@ -213,24 +214,24 @@ export class Publisher {
             requireSpaceBeforeHeadingText: true
         });
         const templates = viewConfig.templates;
-        console.info(`Current templates are ${ templates }`);
+        console.info(blue(`Current templates are ${ templates }`));
         const files = this.files.filter((e: string) => e.endsWith('.md'));
-        console.info(`Current file length is ${ files.length }`);
+        console.info(blue(`Current file length is ${ files.length }`));
         //await fs.ensureDir(`${ this.prefix }/${ this.destination }`);
         
         templates.forEach((tmpl: string) => {
-            console.info(`Current template string is ${ tmpl }`);
+            console.info(blue(`Current template string is ${ tmpl }`));
             files.forEach(async (f) => {
                 console.log(`Publishing file ${ f }`);
                 const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
-                console.info(`Current output file is ${ outputFile }`);
+                console.info(blue(`Current output file is ${ outputFile }`));
                 const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
                 console.log(`Current output directory is ${ outputDir }`);
                 await fs.ensureDir(outputDir);
                 fs.readFile(`${ this.prefix }/${ f }`, (err, data) => {
-                    console.info(`Current file is ${ this.prefix }/${ f }`);
+                    console.info(blue(`Current file is ${ this.prefix }/${ f }`));
                     if(err != null) {
-                        console.error(`Error reading file: ${ err }`);
+                        console.info(red(`Error reading file: ${ err }`));
                     }
                     else {
                         const md = data.toString('utf-8');
@@ -240,7 +241,7 @@ export class Publisher {
                         const output = template({ ...this.globals, ...gray.data });
                         fs.writeFile(`${ outputFile }`, output, (e) => {
                             if(e != null) {
-                                console.error(`Failed to write file ${ e }`);
+                                console.info(red(`Failed to write file ${ e }`));
                             }
                         });
                     }
@@ -251,24 +252,24 @@ export class Publisher {
     public static(staticConfig: StaticConfig): void {
         console.log('Now running static configuration.');
         const templates = staticConfig.templates;
-        console.info(`Current templates are ${ templates }`);
+        console.info(blue(`Current templates are ${ templates }`));
         const files = this.files.filter((e: string) => e.endsWith('.html'));
-        console.info(`Current file length is ${ files.length }`);
+        console.info(blue(`Current file length is ${ files.length }`));
         //await fs.ensureDir(`${ this.prefix }/${ this.destination }`);
         
         templates.forEach((tmpl: string) => {
-            console.info(`Current template string is ${ tmpl }`);
+            console.info(blue(`Current template string is ${ tmpl }`));
             files.forEach(async (f) => {
                 console.log(`Publishing file ${ f }`);
                 const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
-                console.info(`Current output file is ${ outputFile }`);
+                console.info(blue(`Current output file is ${ outputFile }`));
                 const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
-                console.info(`Current output directory is ${ outputDir }`);
+                console.info(blue(`Current output directory is ${ outputDir }`));
                 await fs.ensureDir(outputDir);
                 fs.readFile(`${ this.prefix }/${ f }`, (err, data) => {
-                    console.info(`Current file is ${ this.prefix }/${ f }`);
+                    console.info(blue(`Current file is ${ this.prefix }/${ f }`));
                     if(err != null) {
-                        console.error(`Error reading file: ${ err }`);
+                        console.info(red(`Error reading file: ${ err }`));
                     }
                     else {
                         const html = data.toString('utf-8');
@@ -276,7 +277,7 @@ export class Publisher {
                         const output = template({ ...this.globals, ...{ content: html } });
                         fs.writeFile(`${ outputFile }`, output, (e) => {
                             if(e != null) {
-                                console.error(`Failed to write file ${ e }`);
+                                console.info(red(`Failed to write file ${ e }`));
                             }
                         });
                     }
@@ -290,12 +291,12 @@ export class Publisher {
             const asst = asset.split('/').pop();
             fs.copy(`${ this.prefix  }/${ asset }`, `${ this.prefix  }/${ this.destination }/${ asst }`)
                 .then(() => console.log(`Finished copying to ${ this.prefix  }/${ this.destination }/${ asst }`))
-                .catch(err => console.error(`Failed to copy to ${ this.prefix  }/${ this.destination }/${ asst } ${ err }`));
+                .catch(err => console.info(red(`Failed to copy to ${ this.prefix  }/${ this.destination }/${ asst } ${ err }`)));
         });
         if(fs.existsSync(`${ this.prefix  }/serve.json`)) {
             fs.copyFile(`${ this.prefix  }/serve.json`, `${ this.prefix  }/${ this.destination }/serve.json`)
                 .then(() => console.log(`Finished copying to ${ this.prefix  }/serve.json`))
-                .catch(err => console.error(`Failed to copy to ${ this.prefix  }/${ this.destination }/serve.json ${ err }`));
+                .catch(err => console.info(red(`Failed to copy to ${ this.prefix  }/${ this.destination }/serve.json ${ err }`)));
         }
     }
 }
