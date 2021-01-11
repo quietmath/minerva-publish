@@ -154,8 +154,8 @@ export class Publisher {
                         const tmplData = [];
                         files.slice(0, (pageSize)).forEach((file: string) => {
                             try {
-                                console.info(blue(`Current file is ${ this.prefix }/${ file }`));
-                                const md = fs.readFileSync(`${ this.prefix }/${ file }`, { encoding: 'utf-8' });
+                                console.info(blue(`Current file is ${ file }`));
+                                const md = fs.readFileSync(file, { encoding: 'utf-8' });
                                 const gray = matter(md);
                                 gray.data['link'] = this.getOutputLink(file);
                                 tmplData.push(gray.data);
@@ -165,7 +165,9 @@ export class Publisher {
                             }
                         });
                         console.info(blue(`Current handlebar layout is ${ this.prefix }/${ this.layout }`));
+                        //Only needs to be registered once???
                         hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
+                        //registerAllHelpers(hb);
                         const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
                         const output = template({ posts: tmplData });
 
@@ -223,13 +225,13 @@ export class Publisher {
             console.info(blue(`Current template string is ${ tmpl }`));
             files.forEach(async (f) => {
                 console.log(`Publishing file ${ f }`);
-                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
+                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.prefix }/`,'').replace('.md','.html') }`;
                 console.info(blue(`Current output file is ${ outputFile }`));
                 const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
                 console.log(`Current output directory is ${ outputDir }`);
                 await fs.ensureDir(outputDir);
-                fs.readFile(`${ this.prefix }/${ f }`, (err, data) => {
-                    console.info(blue(`Current file is ${ this.prefix }/${ f }`));
+                fs.readFile(f, (err, data) => {
+                    console.info(blue(`Current file is ${ f }`));
                     if(err != null) {
                         console.info(red(`Error reading file: ${ err }`));
                     }
@@ -261,13 +263,13 @@ export class Publisher {
             console.info(blue(`Current template string is ${ tmpl }`));
             files.forEach(async (f) => {
                 console.log(`Publishing file ${ f }`);
-                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.source }/`,'').replace('.md','.html') }`;
+                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.prefix }/`,'').replace('.md','.html') }`;
                 console.info(blue(`Current output file is ${ outputFile }`));
                 const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
                 console.info(blue(`Current output directory is ${ outputDir }`));
                 await fs.ensureDir(outputDir);
-                fs.readFile(`${ this.prefix }/${ f }`, (err, data) => {
-                    console.info(blue(`Current file is ${ this.prefix }/${ f }`));
+                fs.readFile(f, (err, data) => {
+                    console.info(blue(`Current file is ${ f }`));
                     if(err != null) {
                         console.info(red(`Error reading file: ${ err }`));
                     }
