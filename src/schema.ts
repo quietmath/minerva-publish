@@ -16,6 +16,7 @@ export interface OutputConfig {
     outline?: boolean;
     includeFoldersInURL?: boolean;
     includeDateInURL?: boolean;
+    includeExtension?: boolean;
     list?: ListConfig;
     view?: ViewConfig;
     static?: StaticConfig;

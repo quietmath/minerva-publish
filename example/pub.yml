@@ -6,6 +6,7 @@ output:
   outline: true
   includeFoldersInURL: false
   includeDateInURL: false
+  includeExtension: false
   list:
     size: 10
     order:

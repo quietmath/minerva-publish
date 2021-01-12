@@ -38,7 +38,9 @@ export class Publisher {
         this.globals = globals;
     }
     private getOutputLink(path: string): string {
-        path = path.replace(`${ this.source }/`, `${ this.destination }/`).replace('.md','.html');
+        path = path.replace(`${ this.prefix }`, '')
+            .replace(`${ this.source }/`, '')
+            .replace('.md','.html');
         console.info(blue(`This output link path is ${ path }`));
         return path;
     }
@@ -223,31 +225,40 @@ export class Publisher {
         
         templates.forEach((tmpl: string) => {
             console.info(blue(`Current template string is ${ tmpl }`));
-            files.forEach(async (f) => {
-                console.log(`Publishing file ${ f }`);
-                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.prefix }/`,'').replace('.md','.html') }`;
-                console.info(blue(`Current output file is ${ outputFile }`));
-                const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
-                console.log(`Current output directory is ${ outputDir }`);
-                await fs.ensureDir(outputDir);
-                fs.readFile(f, (err, data) => {
-                    console.info(blue(`Current file is ${ f }`));
-                    if(err != null) {
-                        console.info(red(`Error reading file: ${ err }`));
-                    }
-                    else {
-                        const md = data.toString('utf-8');
-                        const gray = matter(md);
-                        gray.data.content = c.makeHtml(gray.content);
-                        const template = hb.compile('{{#> layout }}' + tmpl + '{{/layout}}', { });
-                        const output = template({ ...this.globals, ...gray.data });
-                        fs.writeFile(`${ outputFile }`, output, (e) => {
-                            if(e != null) {
-                                console.info(red(`Failed to write file ${ e }`));
+            fs.readFile(`${ this.prefix }/${ tmpl }`, (err: Error, tmplData: Buffer) => {
+                if(err != null) {
+                    console.info(red(`Unable to open file ${ this.prefix }/${ tmpl }: ${ err }`));
+                }
+                else {
+                    files.forEach(async (f) => {
+                        console.log(`Publishing file ${ f }`);
+                        const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.prefix }/`,'')
+                            .replace(`${ this.source }/`, '')
+                            .replace('.md','.html') }`;
+                        console.info(blue(`Current output file is ${ outputFile }`));
+                        const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
+                        console.log(`Current output directory is ${ outputDir }`);
+                        await fs.ensureDir(outputDir);
+                        fs.readFile(f, (err, data) => {
+                            console.info(blue(`Current file is ${ f }`));
+                            if(err != null) {
+                                console.info(red(`Error reading file: ${ err }`));
+                            }
+                            else {
+                                const md = data.toString('utf-8');
+                                const gray = matter(md);
+                                gray.data.content = c.makeHtml(gray.content);
+                                const template = hb.compile('{{#> layout }}' + tmplData.toString('utf-8') + '{{/layout}}', { });
+                                const output = template({ ...this.globals, ...gray.data });
+                                fs.writeFile(`${ outputFile }`, output, (e) => {
+                                    if(e != null) {
+                                        console.info(red(`Failed to write file ${ e }`));
+                                    }
+                                });
                             }
                         });
-                    }
-                });
+                    });
+                }
             });
         });
     }
