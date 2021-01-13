@@ -9,6 +9,7 @@ import { blue, red } from 'chalk';
 import { s } from '@quietmath/proto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ListConfig, ViewConfig, StaticConfig } from './schema';
+import { registerAllHelpers } from './helpers';
 
 /**
  * @module quietmath/minerva-publish
@@ -169,7 +170,7 @@ export class Publisher {
                         console.info(blue(`Current handlebar layout is ${ this.prefix }/${ this.layout }`));
                         //Only needs to be registered once???
                         hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
-                        //registerAllHelpers(hb);
+                        registerAllHelpers(hb);
                         const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
                         const output = template({ posts: tmplData });
 

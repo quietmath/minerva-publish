@@ -1,10 +1,11 @@
 export const registerAllHelpers = (hb: any): void => {
 
-    hb.registerHelper('first', (obj) => {
-        if(obj != null && obj.length > 0) {
-            return obj[0];
+    hb.registerHelper('range', (current: number, start: number, end: number) => {
+        const adjusted = current + 1;
+        if((start <= adjusted) && (adjusted <= end)) {
+            return true;
         }
-        return null;
+        return false;
     });
 
 };
