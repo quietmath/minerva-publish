@@ -6,7 +6,7 @@ import { Converter } from 'showdown';
 import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
 import { blue, red } from 'chalk';
-import { s } from '@quietmath/proto';
+import { range, s } from '@quietmath/proto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ListConfig, ViewConfig, StaticConfig } from './schema';
 import { registerAllHelpers } from './helpers';
@@ -133,6 +133,7 @@ export class Publisher {
     public list(listConfig: ListConfig): void {
         console.log('Now running list configuration.');
         if(listConfig) {
+            const indexPage: string = listConfig.index;
             const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
             console.info(blue(`Current page size is ${ pageSize }`));
             //const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
@@ -150,35 +151,47 @@ export class Publisher {
                 console.info(blue(`Current template name is ${ tmplName }`));
                 console.info(blue(`Current file to read is ${ this.prefix }/${ tmpl }`));
                 fs.readFile(`${ this.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
-                    if(err != null) {
-                        console.info(red(`Unable to open file ${ this.prefix }/${ tmpl }: ${ err }`));
-                    }
-                    else {
-                        const tmplData = [];
-                        files.slice(0, (pageSize)).forEach((file: string) => {
-                            try {
-                                console.info(blue(`Current file is ${ file }`));
-                                const md = fs.readFileSync(file, { encoding: 'utf-8' });
-                                const gray = matter(md);
-                                gray.data['link'] = this.getOutputLink(file);
-                                tmplData.push(gray.data);
-                            }
-                            catch(e) {
-                                console.info(red(`Unable to open file ${ this.prefix }/${ file }: ${ e }`));
-                            }
-                        });
-                        console.info(blue(`Current handlebar layout is ${ this.prefix }/${ this.layout }`));
-                        //Only needs to be registered once???
-                        hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
-                        registerAllHelpers(hb);
-                        const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
-                        const output = template({ posts: tmplData });
 
-                        console.info(blue(`Writing to file ${ this.prefix }/${ this.destination }/${ tmplName }`));
-                        fs.writeFile(`${ this.prefix }/${ this.destination }/${ tmplName }`, output, { encoding:'utf-8' })
-                            .then(() => console.log(`Wrote partial to ${ `${ this.prefix }/${ this.destination }/${ tmplName }` }`))
-                            .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                    let totalPages = Math.ceil(files.length / pageSize);
+                    if(tmpl == indexPage) {
+                        totalPages = 1;
                     }
+                    range(totalPages).forEach((num: number) => {
+                        if(err != null) {
+                            console.info(red(`Unable to open file ${ this.prefix }/${ tmpl }: ${ err }`));
+                        }
+                        else {
+                            const tmplData = [];
+                            const start = (num -1) * pageSize;
+                            const end = start + pageSize;
+                            const currentFiles: string[] = files.slice(start, end);
+                            currentFiles.forEach((file: string) => {
+                                try {
+                                    console.info(blue(`Current file is ${ file }`));
+                                    const md = fs.readFileSync(file, { encoding: 'utf-8' });
+                                    const gray = matter(md);
+                                    gray.data['link'] = this.getOutputLink(file);
+                                    gray.data['nextPage'] = (num + 1 == totalPages) ? undefined : num + 1;
+                                    gray.data['prevPage'] = (num - 1 == 0) ? undefined : (num - 1);
+                                    tmplData.push(gray.data);
+                                }
+                                catch(e) {
+                                    console.info(red(`Unable to open file ${ this.prefix }/${ file }: ${ e }`));
+                                }
+                            });
+                            console.info(blue(`Current handlebar layout is ${ this.prefix }/${ this.layout }`));
+                            //Only needs to be registered once???
+                            hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
+                            registerAllHelpers(hb);
+                            const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
+                            const output = template({ posts: tmplData });
+                            //Need to page subfolder for paging
+                            console.info(blue(`Writing to file ${ this.prefix }/${ this.destination }/${ tmplName }`));
+                            fs.writeFile(`${ this.prefix }/${ this.destination }/${ tmplName }`, output, { encoding:'utf-8' })
+                                .then(() => console.log(`Wrote partial to ${ `${ this.prefix }/${ this.destination }/${ tmplName }` }`))
+                                .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                        }
+                    });
                 });
             });
         }

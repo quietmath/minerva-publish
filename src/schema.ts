@@ -23,6 +23,7 @@ export interface OutputConfig {
 }
 
 export interface ListConfig {
+    index?: string;
     size?: number;
     order?: OrderConfig;
     templates: string[];
