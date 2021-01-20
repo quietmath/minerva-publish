@@ -23,7 +23,8 @@ export interface OutputConfig {
 }
 
 export interface ListConfig {
-    index?: string;
+    pagingTemplate?: string;
+    pagingFolder?: string;
     size?: number;
     order?: OrderConfig;
     templates: string[];

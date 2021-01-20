@@ -37,6 +37,8 @@ export class Publisher {
         this.destination = dest;
         this.layout = layout;
         this.globals = globals;
+        hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
+        registerAllHelpers(hb);
     }
     private getOutputLink(path: string): string {
         path = path.replace(`${ this.prefix }`, '')
@@ -133,7 +135,8 @@ export class Publisher {
     public list(listConfig: ListConfig): void {
         console.log('Now running list configuration.');
         if(listConfig) {
-            const indexPage: string = listConfig.index;
+            const pagingTemplate: string = listConfig.pagingTemplate;
+            const pagingFolder: string = listConfig.pagingFolder;
             const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
             console.info(blue(`Current page size is ${ pageSize }`));
             //const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
@@ -153,7 +156,7 @@ export class Publisher {
                 fs.readFile(`${ this.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
 
                     let totalPages = Math.ceil(files.length / pageSize);
-                    if(tmpl == indexPage) {
+                    if(tmpl != pagingTemplate) {
                         totalPages = 1;
                     }
                     range(totalPages).forEach((num: number) => {
@@ -171,8 +174,6 @@ export class Publisher {
                                     const md = fs.readFileSync(file, { encoding: 'utf-8' });
                                     const gray = matter(md);
                                     gray.data['link'] = this.getOutputLink(file);
-                                    gray.data['nextPage'] = (num + 1 == totalPages) ? undefined : num + 1;
-                                    gray.data['prevPage'] = (num - 1 == 0) ? undefined : (num - 1);
                                     tmplData.push(gray.data);
                                 }
                                 catch(e) {
@@ -180,16 +181,28 @@ export class Publisher {
                                 }
                             });
                             console.info(blue(`Current handlebar layout is ${ this.prefix }/${ this.layout }`));
-                            //Only needs to be registered once???
-                            hb.registerPartial('layout', fs.readFileSync(`${ this.prefix }/${ this.layout }`, 'utf8'));
-                            registerAllHelpers(hb);
                             const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
-                            const output = template({ posts: tmplData });
+                            const pagingLinks = {
+                                nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
+                                prevPage: ((num - 1 == 0) ? undefined : (num - 1))
+                            };
+                            const output = template({ posts: tmplData, ...pagingLinks });
                             //Need to page subfolder for paging
                             console.info(blue(`Writing to file ${ this.prefix }/${ this.destination }/${ tmplName }`));
-                            fs.writeFile(`${ this.prefix }/${ this.destination }/${ tmplName }`, output, { encoding:'utf-8' })
-                                .then(() => console.log(`Wrote partial to ${ `${ this.prefix }/${ this.destination }/${ tmplName }` }`))
-                                .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                            if(totalPages === 1) {
+                                fs.writeFile(`${ this.prefix }/${ this.destination }/${ tmplName }`, output, { encoding:'utf-8' })
+                                    .then(() => console.log(`Wrote partial to ${ `${ this.prefix }/${ this.destination }/${ tmplName }` }`))
+                                    .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                            }
+                            else {
+                                if(pagingFolder) {
+                                    fs.ensureDirSync(`${ this.prefix }/${ this.destination }/${ pagingFolder }`);
+                                }
+                                const pagingFileName: string = (pagingFolder != null) ? `${ pagingFolder }/${ num }.html` : `${ num }.html`;
+                                fs.writeFile(`${ this.prefix }/${ this.destination }/${ pagingFileName }`, output, { encoding:'utf-8' })
+                                    .then(() => console.log(`Wrote partial to ${ `${ this.prefix }/${ this.destination }/${ pagingFileName }` }`))
+                                    .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                            }
                         }
                     });
                 });
