@@ -7,6 +7,7 @@ import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
 import { blue, red } from 'chalk';
 import { range, s } from '@quietmath/proto';
+import { JSONStore } from '@quietmath/moneta';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ListConfig, ViewConfig, StaticConfig, OutputConfig } from './schema';
 import { registerAllHelpers } from './helpers';
@@ -17,6 +18,7 @@ import { registerAllHelpers } from './helpers';
 
 export class Publisher {
     private files: string[];
+    private store: JSONStore;
     private tree: any;
     private summary: string;
     public prefix: string;
@@ -90,6 +92,15 @@ export class Publisher {
             return nodeList;
         }
         return buildTree();
+    }
+    private storeFiles(): void {
+        this.store = new JSONStore('minerva.json');
+        this.store.create('pages');
+        this.files.forEach((f: string) => {
+            //Get a  key.
+            //Store the content of the file.
+            this.store.insert('pages', '', '');
+        });
     }
     public async sanity(): Promise<void> {
         console.log('Starting sanity check.');

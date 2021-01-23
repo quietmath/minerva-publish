@@ -47,7 +47,7 @@
     "eslint-fix": "eslint ./src/*.ts ./src/**/*.ts --fix"
   },
   "dependencies": {
-    "@quietmath/moneta": "^0.2.0",
+    "@quietmath/moneta": "^0.2.2",
     "@quietmath/proto": "^1.2.0",
     "chalk": "^4.1.0",
     "fs-extra": "^9.0.0",
