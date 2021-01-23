@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"
+    xmlns:media="http://search.yahoo.com/mrss/"
+    xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+    <channel>
+        <title><![CDATA[Codepunk]]></title>
+        <description><![CDATA[Life in the new Cyberia. A software engineering web site from Bill Ahern and Michael Szul that looks at the intersection of programming, technology, and the digital lifestyle.]]></description>
+        <link>https://codepunk.io/</link>
+        <generator>Ghost 0.11</generator>
+        <lastBuildDate>Tue, 08 Dec 2020 14:58:43 GMT</lastBuildDate>
+        <atom:link href="https://codepunk.io/rss/" rel="self" type="application/rss+xml"/>
+        <language><![CDATA[en]]></language>
+        <ttl>60</ttl>
+        <itunes:explicit>yes</itunes:explicit>
+        <itunes:summary>A cyberculture podcast from Bill Ahern and Michael Szul that looks at the intersection of programming, technology, and the digital lifestyle.</itunes:summary>
+        <itunes:author>Bill Ahern &amp; Michael Szul</itunes:author>
+        <itunes:owner>
+            <itunes:name>Bill Ahern &amp; Michael Szul</itunes:name>
+            <itunes:email>michael@szul.us</itunes:email>
+        </itunes:owner>
+        <itunes:email>michael@szul.us</itunes:email>
+        <itunes:keywords>software,programming,cyberculture,cyberpunk,technology</itunes:keywords>
+        <itunes:image href="http://cdn.october.codes/images/codepunk_io_cover_black.png"/>
+        <itunes:category text="Technology">
+            <itunes:category text="Software How-To"/>
+        </itunes:category>
+        <itunes:category text="Society &amp; Culture"></itunes:category>
+        <!-- repeat -->
+        <item>
+            <title><![CDATA[Human-Centered Programming]]></title>
+            <description><![CDATA[Human-centered programming is a way of thinking about software that is different from the traditional programmers can do whatever they want because...]]></description>
+            <link>https://codepunk.io/human-centered-programming/</link>
+            <guid isPermaLink="false">641a9ae4-2f91-4350-9c4d-4a7d37e165cf</guid>
+            <category><![CDATA[programming]]></category>
+            <category><![CDATA[business]]></category>
+            <category><![CDATA[capitalism]]></category>
+            <dc:creator><![CDATA[Michael Szul]]></dc:creator>
+            <pubDate>Mon, 26 Oct 2020 16:44:09 GMT</pubDate>
+            <media:content url="http://codepunk.io/content/images/2020/10/hcp.jpg" medium="image"/>
+            <content:encoded><![CDATA[<blockquote>
+  <img src="http://codepunk.io/content/images/2020/10/hcp.jpg" alt="Human-Centered Programming"><p>Michael,</p>
+  
+  <p>Thanks for your interest in L3-AI! We're excited to feature your presentation. </p>
+  
+  <p>Would you be able to condense your proposal into a 5 minute lightning talk?  If this sounds good to you, I'll schedule next steps [...]</p>
+</blockquote>
+
+<p>Actually... I submitted to do a lightning talk, so no problem, right? I've <a href="https://codepunk.io/why-i-love-lightning-talks/">mentioned before</a> that too often people see lightning talks as a consolation price, but I use them to test out new ideas, and it requires a special set of skills to get those ideas across in a short amount of time.</p>
+
+<p>Unlike in the past where my focus was explicitly on the Microsoft Bot Framework, I had recently expanded to a greater analysis of frameworks like <a href="https://rasa.com">Rasa</a> and <a href="https://www.botkit.ai">Ben Brown's Botkit</a>. After conversations with Chris Mullins at Microsoft, I really started applying a more critical eye towards the frameworks I'd been using, but was taking for granted.</p>
+
+<p>Specifically, I was unconvinced that the way frameworks were being built constituted an appropriate approach. We're not talking about programming-centric frameworks. Conversational software is about a conversation-first approach, and the frameworks for building conversational software should allow the programmer to program in a way that represents how a conversation flows. (Brown's Botkit does a good job of this with the names of its methods and classes.)</p>
+
+<p>I decided to built a chatbot framework from scratch in order to explore these ideas and settled on conversation analysis as a theory to apply. This led to several presentations over the course of the Summer, including Rasa's L3-AI. I expanded on this presentation in latter virtual conferences, and being influenced by the pandemic, politics, and the overall despair of the state of affairs, this expanded presentation took quite an unexpected turn.</p>
+
+<hr>
+
+<p>LinkedIn can be a valuable tool and a painful platform all in the same minute. The more active you become, the more noticed you are, and the more likely you'll start getting random InMail's and connection invites from people you don't know. If you're lucky recruiters will use the InMail feature where they have a limited number of cold requests. Mostly, though, they just send you a random connection request and put their message in the invite to try to avoid burning their InMails.</p>
+
+<p>I have a general rule: If I don't know you and you send a connection request without a personal message, I ignore it outright. If it does have a personal message, I hope it's relevant.</p>
+
+<p>When I received an invite from <a href="https://www.linkedin.com/in/brian-greenwald-108/">Brian Greenwald</a>, he at least followed the appropriate etiquette. The Vice President of Business Development for <a href="https://generateimpact.com">Generate Impact</a>, Brian was a new addition to the unfolding story of Chiedo Labs&mdash;a local Harrisonburg development shop spawned from the machinations of James Madison University student Chiedo John. I was familiar Chiedo Labs from some local tech circles and was connected to Chiedo and a few employees through LinkedIn. Chiedo and I both spoke at Nation JS in Washington, DC the previous year and had exchanged a few emails.</p>
+
+<p>Chiedo was always a faith-based person, while Chiedo Labs&mdash;although a good group of people&mdash;was fighting an uphill battle trying to distinguish itself in custom development where its a race to the bottom on client pricing. So it made sense when the company converted from Chiedo Labs to Generate Impact and began a concentrated effort towards focusing on helping non-profits.</p>
+
+<p>But it wasn't long before Chiedo jumped ship to greener pastures at GitHub, while Brian and Mike Forster (Generate Impact president) were piloting the transformation of the company.</p>
+
+<hr>
+
+<blockquote>
+  <p>Hi Michael! That’s awesome that you know Chiedo! He was one of my clients and [as] fortune would have it we ended up merging what I do with Generate Impact. [...] I would love to meet for coffee - seems like it will be a while unfortunately. We are hunkered down here in Earlysville. Would love to learn about what you are doing...maybe we can schedule a zoom call sometime.</p>
+</blockquote>
+
+<p>I agreed.</p>
+
+<p>I also didn't expect a Zoom call to be scheduled immediately for the following week. It smelled a little of a cold call, which I'm never receptive to. Still, I was familiar with the company and some of the team members, so at worst, I would fly into the meeting with little need to put a lid on my opinions or personality.</p>
+
+<p>My conversation with Brian came just after the COVID-19 pandemic began shutting down much of the United States, and I had already begun reading articles about the reshaping of economic needs and drivers. What started as a discussion of engineering proficiency, DevOps, and business-oriented IT processes escalated into the public good side of non-profits, B-corps, and the fundamentally optimistic assumption that <em>something has to give</em>. Corporations cannot continue on an infinite growth curve, and the pandemic represented an unprecedented opportunity to hit reset on corporate values and strive for something more than the upwards extraction of wealth.</p>
+
+<p>Having previously interviewed enterprise architect Bryan Betts&mdash;someone who has spend most of his career in public service&mdash;I remember my colleague asking him about a hypothetical situation of communicating to leadership the ROI of certain better processes and planning.</p>
+
+<blockquote>
+  <p>Sometimes its not about the return on investment; Sometimes its just about doing the right thing, and there's value in that alone.</p>
+</blockquote>
+
+<p>From Brian Greenwald's side, he had been working for quite some time on the concept of a benevolent business model&mdash;an economic and business planning model that focused on success through the lens of greater inclusiveness and understanding of externalities rather than pure financial extraction&mdash;a model that seeks sustainability and equitability over exponential growth. Brian and I connected enough on a philosophical level that he introduced me to Generate Impact president Mike Forster to further the discuss on the positive technological impact on local businesses and communities. What emerged was a vision of enabling public good through technology, but from the local-first, sustainability approach that has permeated environmental movements&mdash;an acknowledgement that a successful path forward in the new normal consisted of an interrelated approach combining people, processes, and technology.</p>
+
+<blockquote>
+  <p>The Benevolent Business Model is anchored in the principle that all human activity exists (or SHOULD exist) to fulfill benevolent human needs. By that principle, a business exists to first CONTRIBUTE to the community it exists in and is building as opposed to focusing on gathering and EXTRACTING as many resources as possible. In other words, profit becomes the enabler of a collective vision of well-being as opposed to the end goal itself.</p>
+  
+  <p>Of course, the irony of this approach, particularly in the world we are living in today, is that focusing on the benevolence of EVERY member of the business community is MORE likely to be a strategic advantage and thus lead to more success and profit than the traditional "business as an army going to battle" approach, where victory is possible, but in the long run the cost to society is high.</p>
+</blockquote>
+
+<p>We can't forget about the people.</p>
+
+<hr>
+
+<p><img src="https://codepunk.io/content/images/2020/10/hcp-1.png" alt="Human-Centered Programming"></p>
+
+<p>Typically when we talk about economic sectors, the focus is generally on the public and private sectors, and most don't consider if there is anything else on the outer boundaries. But recent analyses by market-watchers like <a href="https://www.exponentialview.co">Azeem Azar</a> have pointed out the ever-growing sector (and importance) of open source software and technology. We’re used to hearing about the public sector and the private sector, what has been continuing to gain stream is this idea of an "open" sector.</p>
+
+<p>COVID-19 has shown us the value of open data, and how that sharing can speed up understanding and innovation. In fact, open source software, open data, crowd-sourcing solutions, and crowd-funding projects, combined with efforts like GitHub Sponsors, Patreon, and Ko-Fi are carving out a sector that isn’t quite public, but isn’t private either. It’s an open, more democratic sector for a society looking to advance common goals.</p>
+
+<p>This open sector is more prevalent in the technology industry than anywhere else, and it feeds both the private and public sector, such as open source software enabling and enhancing companies in either or those sectors. In fact, it feels like we've come full circle back to the original hackers of the 70's and 80's&mdash;producing software in a left-libertarian form of mutualism.</p>
+
+<p>But oftentimes, our technology accelerates faster than our morality, and we occasionally need to step back and reevaluate our positions. For example, there is a disconnect between the programmers and researchers working hard on facial recognition software for the advancement of the theories and technology, and the fundamentally immoral use of facial recognition software in racial profiling and identifying protesters.</p>
+
+<p>If you're at all familiar with <a href="https://logicmag.io">Logic Magazine</a>, you've read some of the more significant techno-societal ponderings that are invading Silicon Valley's philosophical outlook, such as Astra Taylor's take down of the "security" of capitalism in <a href="https://logicmag.io/security/the-insecurity-machine/"><em>The Insecurity Machine</em></a>, which shows how technology is applied not to create more security for individuals, but to enhance greater security for ownership.</p>
+
+<p><img src="https://codepunk.io/content/images/2020/10/hcp-2.png" alt="Human-Centered Programming"></p>
+
+<p>Human-centered programming is a way of thinking about software that is different from the traditional <em>programmers can do whatever they want because technology is agnostic</em> view. To this respect, programming and technology consist of three important components: code, culture, and conscience. These three components can best be viewed in the traditional triangle trope of related ideas. Like all other triangle diagrams, it implies an interconnectedness between elements.</p>
+
+<p>Code enables culture and culture defines how we code, but without conscience, we won’t fully understand the impact of the code that we write or the negative directions that our culture might take. A lack of conscience in coding leads to biased machine learning algorithms that reinforce minority detainment. It leads to Facebook algorithms that create positive feedback loops in confirmation bias and belief perseverance bias. It leads to Google working on drone technology for the military.</p>
+
+<p>We need all three&mdash;code, culture, and conscience&mdash;to have human-centered programming.</p>
+
+<p>When all three are working together, that’s when you build community (just convert the triangle to Venn diagram--or toss the word "community" in the middle of the triangle). This then begs the question: What kind of community do you want to build?</p>
+
+<p>At Microsoft, we’ve seen a cultural shift that has led to more openness and investment in initiatives such as <a href="https://www.microsoft.com/en-us/ai/ai-for-earth">AI for Earth</a> and AI for Good. Even Facebook <a href="https://dataforgood.fb.com">has an open data initiative</a> supporting relief efforts and coronavirus research. <a href="https://rasa.com">Rasa</a>, meanwhile, is built on top of the premises of open source and open culture and makes a concerted effort to target a 50% diversity rate in hiring practices. Generate Impact, meanwhile, doesn't just focus on supporting clients with a greater drive towards public good, but promotes the very values and stories of those companies to keep the narrative alive and growing.</p>
+
+<p>The point is that, previously, software was used. But now, in an area of self-driving cars, machine learning models, and AI algorithms, software is less explicitly used like a data entry system, and is more ubiquitous, more integrated, and more influential and controlling of our lives. This means that we need to be building the right community and the right guardrails, by being conscientious of how code shapes our culture. That requires a methodology for coding <em>and</em> a better business model.</p>
+
+<p>Conversational software, artificial intelligence, automation, virtual reality... These areas exist on the frontline of our assimilation as software and technology "eats the world". These are areas in the industry where we are trying to make the software more responsive, more personal, and more human in order to solve problems. But as programmers working on them... we need to be sure that we’re approaching it from a human-centered perspective, while pushing companies to understand what a benevolent business model has to offer them (and society) over the long term.</p>
+
+<p><small>Photo of "Charity" by <a href="https://www.flickr.com/photos/contemplativechristian/2539029180/in/photolist-4SnbVb-vjPho1-oj1U7Y-4mMF5P-9PBurq-9Tyiyx-9TB7Uf-9TB8jo-pTGdFE-2gKMEYF-pTGhrL-pevp2p-pTPV5c-oDqhVp-Squ8Jn-denqkW-8fxJYm-qbcJAj-peuZTk-g5wHAg-pTQP7M-qbfTiX-pTPN3B-DwPKeP-qbfZWg-oTSzvw-oVUrSP-qbcNx7-pTGNh9-pTQfg8-q8YEQA-qFLDvY-pegDZj-pegL17-qbfV3i-pTRsgX-q8YYMC-pehhvA-pevzZX-R9WVCu-pehcVo-qbg4YK-qb5RAp-qb64Rg-qbcXhS-qbd1LL-pevBFH-pTHot5-pevCcH-q8Z7DQ">contemplativechristian</a></small></p>]]></content:encoded>
+            <itunes:duration></itunes:duration>
+        </item>
+        <!-- //end repeat -->
+    </channel>
+</rss>

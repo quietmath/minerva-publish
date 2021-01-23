@@ -311,35 +311,26 @@ export class Publisher {
         console.log('Now running static configuration.');
         const templates = staticConfig.templates;
         console.info(blue(`Current templates are ${ templates }`));
-        const files = this.files.filter((e: string) => e.endsWith('.html'));
-        console.info(blue(`Current file length is ${ files.length }`));
-        //await fs.ensureDir(`${ this.prefix }/${ this.destination }`);
-        
+
         templates.forEach((tmpl: string) => {
             console.info(blue(`Current template string is ${ tmpl }`));
-            files.forEach(async (f) => {
-                console.log(`Publishing file ${ f }`);
-                const outputFile = `${ this.prefix }/${ this.destination }/${ f.replace(`${ this.prefix }/`,'').replace('.md','.html') }`;
-                console.info(blue(`Current output file is ${ outputFile }`));
-                const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
-                console.info(blue(`Current output directory is ${ outputDir }`));
-                await fs.ensureDir(outputDir);
-                fs.readFile(f, (err, data) => {
-                    console.info(blue(`Current file is ${ f }`));
-                    if(err != null) {
-                        console.info(red(`Error reading file: ${ err }`));
-                    }
-                    else {
-                        const html = data.toString('utf-8');
-                        const template = hb.compile('{{#> layout }}' + tmpl + '{{/layout}}', { });
-                        const output = template({ ...this.globals, ...{ content: html } });
-                        fs.writeFile(`${ outputFile }`, output, (e) => {
-                            if(e != null) {
-                                console.info(red(`Failed to write file ${ e }`));
-                            }
-                        });
-                    }
-                });
+            fs.readFile(`${ this.prefix }/${ tmpl }`, (err: Error, tmplData: Buffer) => {
+                const fileName = tmpl.split('/').reverse()[0].replace('.hbs', '.html');
+                if(err != null) {
+                    console.info(red(`Unable to open file ${ this.prefix }/${ tmpl }: ${ err }`));
+                }
+                else {
+                    const outputFile = `${ this.prefix }/${ this.destination }/${ fileName }`;
+                    console.info(blue(`Current output file is ${ outputFile }`));
+                    const html = tmplData.toString('utf-8');
+                    const template = hb.compile('{{#> layout }}' + html + '{{/layout}}', { });
+                    const output = template({ ...this.globals, ...{ content: html } });
+                    fs.writeFile(`${ outputFile }`, output, (e) => {
+                        if(e != null) {
+                            console.info(red(`Failed to write file ${ e }`));
+                        }
+                    });
+                }
             });
         });
     }
