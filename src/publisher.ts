@@ -134,6 +134,16 @@ export class Publisher {
     }
     public list(listConfig: ListConfig): void {
         console.log('Now running list configuration.');
+        const c = new Converter({
+            ghCompatibleHeaderId: true,
+            parseImgDimensions: true,
+            strikethrough: true,
+            tables: true,
+            ghCodeBlocks: true,
+            tasklists: true,
+            requireSpaceBeforeHeadingText: true,
+            omitExtraWLInCodeBlocks: true
+        });
         if(listConfig) {
             const pagingTemplate: string = listConfig.pagingTemplate;
             const pagingFolder: string = listConfig.pagingFolder;
@@ -173,6 +183,7 @@ export class Publisher {
                                     console.info(blue(`Current file is ${ file }`));
                                     const md = fs.readFileSync(file, { encoding: 'utf-8' });
                                     const gray = matter(md);
+                                    gray.data.content = c.makeHtml(gray.content);
                                     gray.data['link'] = this.getOutputLink(file);
                                     tmplData.push(gray.data);
                                 }
@@ -242,7 +253,8 @@ export class Publisher {
             tables: true,
             ghCodeBlocks: true,
             tasklists: true,
-            requireSpaceBeforeHeadingText: true
+            requireSpaceBeforeHeadingText: true,
+            omitExtraWLInCodeBlocks: true
         });
         const templates = viewConfig.templates;
         console.info(blue(`Current templates are ${ templates }`));
