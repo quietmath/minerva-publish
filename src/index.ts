@@ -22,6 +22,7 @@ else {
         console.log('Publishing files');
         pub.sanity()
             .then(async () => {
+                pub.setOutputConfiguration(yaml.output);
                 pub.outline(yaml.output?.outline);
                 pub.toc(yaml.output?.outline);
                 pub.list(yaml.output?.list);

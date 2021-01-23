@@ -8,7 +8,7 @@ import * as hb from 'handlebars';
 import { blue, red } from 'chalk';
 import { range, s } from '@quietmath/proto';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ListConfig, ViewConfig, StaticConfig } from './schema';
+import { ListConfig, ViewConfig, StaticConfig, OutputConfig } from './schema';
 import { registerAllHelpers } from './helpers';
 
 /**
@@ -24,6 +24,7 @@ export class Publisher {
     public destination: string;
     public layout: string;
     public globals: any;
+    public outputConfiguration: OutputConfig;
     constructor(prefix: string, source: string, dest: string, layout: string, globals: any = {}) {
         if(this.prefix === 'absolute') {
             console.log('Prefix is abolute.');
@@ -43,7 +44,7 @@ export class Publisher {
     private getOutputLink(path: string): string {
         path = path.replace(`${ this.prefix }`, '')
             .replace(`${ this.source }/`, '')
-            .replace('.md','.html');
+            .replace('.md', (this.outputConfiguration.includeExtension ? '.html' : ''));
         console.info(blue(`This output link path is ${ path }`));
         return path;
     }
@@ -99,6 +100,13 @@ export class Publisher {
             console.log('Acquired file tree.');
         }
     }
+    public setOutputConfiguration(output: OutputConfig): void {
+        this.outputConfiguration = {
+            includeFoldersInURL: output.includeFoldersInURL,
+            includeDateInURL: output.includeDateInURL,
+            includeExtension: output.includeExtension
+        };
+    }
     public outline(outline: boolean): void {
         const self: Publisher = this;
         if(outline) {
@@ -141,8 +149,7 @@ export class Publisher {
             tables: true,
             ghCodeBlocks: true,
             tasklists: true,
-            requireSpaceBeforeHeadingText: true,
-            omitExtraWLInCodeBlocks: true
+            requireSpaceBeforeHeadingText: true
         });
         if(listConfig) {
             const pagingTemplate: string = listConfig.pagingTemplate;
@@ -253,8 +260,7 @@ export class Publisher {
             tables: true,
             ghCodeBlocks: true,
             tasklists: true,
-            requireSpaceBeforeHeadingText: true,
-            omitExtraWLInCodeBlocks: true
+            requireSpaceBeforeHeadingText: true
         });
         const templates = viewConfig.templates;
         console.info(blue(`Current templates are ${ templates }`));
