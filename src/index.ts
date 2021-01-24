@@ -18,20 +18,19 @@ else {
         console.info(`Parsing file ${ yargs.argv.f }`);
         const yaml: PubConfig = parseYAML(data);
         console.log('Creating publishing engine.');
-        const pub = new Publisher(yaml.path, yaml.source, yaml.dest, yaml.layout, yaml.globals);
+        const pub = new Publisher(yaml);
         console.log('Publishing files');
         pub.sanity()
             .then(async () => {
-                pub.setOutputConfiguration(yaml.output);
-                pub.outline(yaml.output?.outline);
-                pub.toc(yaml.output?.outline);
-                pub.list(yaml.output?.list);
-                pub.view(yaml.output?.view);
-                pub.static(yaml.output?.static);
-                await pub.copy(yaml.assets);
+                pub.outline();
+                pub.toc();
+                pub.rss();
+                pub.list();
+                pub.view();
+                pub.static();
+                await pub.copy();
             }).catch((err) => {
                 console.error(`Could not publish files: ${ err }`);
             });
-        
     }
 }

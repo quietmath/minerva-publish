@@ -3,7 +3,7 @@
  */
 
 export interface PubConfig {
-    path: 'absolute' | 'relative';
+    prefix: string;
     source: string;
     dest: string;
     layout: string;
@@ -17,9 +17,12 @@ export interface OutputConfig {
     includeFoldersInURL?: boolean;
     includeDateInURL?: boolean;
     includeExtension?: boolean;
+    categoryProperty?: string;
     list?: ListConfig;
     view?: ViewConfig;
     static?: StaticConfig;
+    rss?: RSSConfig;
+    podcast?: PodcastConfig;
 }
 
 export interface ListConfig {
@@ -41,4 +44,15 @@ export interface StaticConfig {
 export interface OrderConfig {
     orderBy: 'title' | 'date';
     direction: 'asc' | 'desc';
+    type: 'string' | 'number' | 'date';
+}
+
+export interface RSSConfig {
+    template: string;
+}
+
+export interface PodcastConfig {
+    folder?: string;
+    categoryProperty: string;
+    key: string;
 }

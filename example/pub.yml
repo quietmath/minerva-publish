@@ -1,20 +1,32 @@
-source: source-docs
+prefix: /home/szul/code/quietmath/codepunk.io
+source: content
 dest: public
 layout: templates/layout.hbs
-assets: [source-docs/css, source-docs/images]
+assets: [content/images, content/css]
 output:
-  outline: true
+  outline: false
   includeFoldersInURL: false
   includeDateInURL: false
   includeExtension: false
+  categoryProperty: tags
   list:
-    size: 10
+    pagingTemplate: templates/paging.hbs
+    pagingFolder: page
+    size: 6
     order:
       orderBy: date
       direction: desc
-    templates: [templates/list.hbs]
-  rss: true
+      type: date
+    templates: [templates/index.hbs, templates/posts.hbs, templates/paging.hbs]
+  view:
+    templates: [templates/post.hbs]
+  static:
+    templates: [templates/newsletter.hbs, templates/about.hbs]
+  rss:
+    template: templates/rss.hbs
   podcast:
     folder: podcast
+    categoryProperty: tags
+    key: codepunk
 globals:
   name: test
