@@ -254,6 +254,96 @@ export class Publisher {
             });
         }
     }
+    public podcastList(): void {
+        if(this.config?.output?.podcast && this.config?.output?.podcast?.folder) {
+            console.log('Now running list configuration.');
+            const c = new Converter({
+                ghCompatibleHeaderId: true,
+                parseImgDimensions: true,
+                strikethrough: true,
+                tables: true,
+                ghCodeBlocks: true,
+                tasklists: true,
+                requireSpaceBeforeHeadingText: true
+            });
+            if(this.config?.output?.list) {
+                const listConfig = this.config.output.list;
+                const pagingTemplate: string = listConfig.pagingTemplate;
+                const pagingFolder: string = this.config.output.podcast.folder;
+                const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
+                console.info(blue(`Current page size is ${ pageSize }`));
+                const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
+                const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
+                const templates = listConfig.templates;
+                console.info(blue(`Current list templates are ${ templates }`));
+                const files = this.files.filter((e: string) => e.endsWith('.md'));
+                console.info(blue(`Current number of markdown files are ${ files.length }`));
+
+                templates.forEach((tmpl: string) => {
+                    console.info(blue(`Current template string is ${ tmpl }`));
+                    const tmplNameParts = tmpl.replace('.hbs', '.html').split('/');
+                    console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
+                    const tmplName = tmplNameParts.pop();
+                    console.info(blue(`Current template name is ${ tmplName }`));
+                    console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
+                    fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
+
+                        let totalPages = Math.ceil(files.length / pageSize);
+                        if(tmpl != pagingTemplate) {
+                            totalPages = 1;
+                        }
+                        range(totalPages).forEach((num: number) => { //This will not work without the database...
+                            if(err != null) {
+                                console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
+                            }
+                            else {
+                                const tmplData = [];
+                                const start = (num -1) * pageSize;
+                                const end = start + pageSize;
+                                const currentFiles: string[] = files.slice(start, end);
+                                currentFiles.forEach((file: string) => {
+                                    try {
+                                        console.info(blue(`Current file is ${ file }`));
+                                        const md = fs.readFileSync(file, { encoding: 'utf-8' });
+                                        const gray = matter(md);
+                                        gray.data.content = c.makeHtml(gray.content);
+                                        gray.data['link'] = this.getOutputLink(file);
+                                        tmplData.push(gray.data);
+                                    }
+                                    catch(e) {
+                                        console.info(red(`Unable to open file ${ this.config.prefix }/${ file }: ${ e }`));
+                                    }
+                                });
+                                console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
+                                const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
+                                const pagingLinks = {
+                                    nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
+                                    prevPage: ((num - 1 == 0) ? undefined : (num - 1))
+                                };
+                                const output = template({ posts: tmplData, ...pagingLinks });
+                                //Need to page subfolder for paging
+                                console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
+                                if(totalPages === 1) {
+                                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
+                                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
+                                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                                }
+                                else {
+                                    if(pagingFolder) {
+                                        fs.ensureDirSync(`${ this.config.prefix }/${ this.config.dest }/${ pagingFolder }`);
+                                    }
+                                    const pagingFileName: string = (pagingFolder != null) ? `${ pagingFolder }/${ num }.html` : `${ num }.html`;
+                                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ pagingFileName }`, output, { encoding:'utf-8' })
+                                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ pagingFileName }` }`))
+                                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                                }
+                            }
+                        });
+                    });
+                });
+            }
+        }
+    }
     public list(): void {
         console.log('Now running list configuration.');
         const c = new Converter({

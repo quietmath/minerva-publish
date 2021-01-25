@@ -26,6 +26,7 @@ else {
                 pub.toc();
                 pub.rss();
                 pub.podcast();
+                pub.podcastList();
                 pub.list();
                 pub.view();
                 pub.static();

@@ -27,7 +27,7 @@ output:
   podcast:
     template: templates/podcast.hbs
     rss: templates/podcast-rss.hbs
-    folder: podcast
+#    folder: podcast
     categoryProperty: tags
     key: codepunk
 globals:
