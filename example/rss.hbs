@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"
+    xmlns:media="http://search.yahoo.com/mrss/"
+    xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+    <channel>
+        <title><![CDATA[Codepunk]]></title>
+        <description><![CDATA[Life in the new Cyberia. A software engineering web site from Bill Ahern and Michael Szul that looks at the intersection of programming, technology, and the digital lifestyle.]]></description>
+        <link>https://codepunk.io/</link>
+        <generator>minerva-publish</generator>
+        <lastBuildDate>Tue, 08 Dec 2020 14:58:43 GMT</lastBuildDate>
+        <atom:link href="https://codepunk.io/rss/" rel="self" type="application/rss+xml"/>
+        <language><![CDATA[en]]></language>
+        <ttl>60</ttl>
+        <itunes:explicit>yes</itunes:explicit>
+        <itunes:summary>A cyberculture podcast from Bill Ahern and Michael Szul that looks at the intersection of programming, technology, and the digital lifestyle.</itunes:summary>
+        <itunes:author>Bill Ahern &amp; Michael Szul</itunes:author>
+        <itunes:owner>
+            <itunes:name>Bill Ahern &amp; Michael Szul</itunes:name>
+            <itunes:email>michael@szul.us</itunes:email>
+        </itunes:owner>
+        <itunes:email>michael@szul.us</itunes:email>
+        <itunes:keywords>software,programming,cyberculture,cyberpunk,technology</itunes:keywords>
+        <itunes:image href="http://cdn.october.codes/images/codepunk_io_cover_black.png"/>
+        <itunes:category text="Technology">
+            <itunes:category text="Software How-To"/>
+        </itunes:category>
+        <itunes:category text="Society &amp; Culture"></itunes:category>
+        {{#each posts}}
+          <item>
+              <title><![CDATA[{{title}}]]></title>
+              <description><![CDATA[{{description}}]]></description>
+              <link>{{link}}</link>
+              <!--
+              <guid isPermaLink="false">641a9ae4-2f91-4350-9c4d-4a7d37e165cf</guid>
+              -->
+              <category><![CDATA[{{tags}}]]></category>
+              <dc:creator><![CDATA[{{author}}]]></dc:creator>
+              <pubDate>{{datePublished}}</pubDate>
+              <media:content url="{{imgUrl}}" medium="image"/>
+              <content:encoded><![CDATA[{{{content}}}]]></content:encoded>
+              <itunes:duration></itunes:duration>
+          </item>
+    </channel>
+</rss>

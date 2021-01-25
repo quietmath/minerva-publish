@@ -175,7 +175,7 @@ export class Publisher {
     public rss(): void {
         if(this.config?.output?.rss) {
             console.log('Now running rss configuration.');
-            const tmpl = this.config.output.rss.template;
+            const tmpl = this.config.output.rss;
             console.info(blue(`Current template string is ${ tmpl }`));
             const tmplNameParts = tmpl.replace('.hbs', '').split('/');
             console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
@@ -195,6 +195,49 @@ export class Publisher {
                             const gray = matter(md);
                             gray.data['link'] = this.getOutputLink(file);
                             tmplData.push(gray.data);
+                        }
+                        catch(e) {
+                            console.info(red(`Unable to open file ${ this.config.prefix }/${ file }: ${ e }`));
+                        }
+                    });
+                    console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
+                    const template = hb.compile(data.toString('utf-8'), { });
+                    const output = template({ posts: tmplData });
+                    console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
+                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
+                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
+                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                }
+            });
+        }
+    }
+    public podcast(): void {
+        if(this.config?.output?.podcast) {
+            console.log('Now running rss configuration.');
+            const tmpl = this.config.output.podcast.template;
+            const categoryProperty = this.config.output.podcast.categoryProperty;
+            const key = this.config.output.podcast.key;
+            console.info(blue(`Current template string is ${ tmpl }`));
+            const tmplNameParts = tmpl.replace('.hbs', '').split('/');
+            console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
+            const tmplName = tmplNameParts.pop();
+            console.info(blue(`Current template name is ${ tmplName }`));
+            console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
+            fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
+                if(err != null) {
+                    console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
+                }
+                else {
+                    const tmplData = [];
+                    this.files.forEach((file: string) => {
+                        try {
+                            console.info(blue(`Current file is ${ file }`));
+                            const md = fs.readFileSync(file, { encoding: 'utf-8' });
+                            const gray = matter(md);
+                            gray.data['link'] = this.getOutputLink(file);
+                            if(gray.data[categoryProperty] != null && gray.data[categoryProperty].toLowerCase().indexOf(key) !== -1) {
+                                tmplData.push(gray.data);
+                            }
                         }
                         catch(e) {
                             console.info(red(`Unable to open file ${ this.config.prefix }/${ file }: ${ e }`));

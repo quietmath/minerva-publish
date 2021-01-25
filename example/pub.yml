@@ -25,6 +25,8 @@ output:
   rss:
     template: templates/rss.hbs
   podcast:
+    template: templates/podcast.hbs
+    rss: templates/podcast-rss.hbs
     folder: podcast
     categoryProperty: tags
     key: codepunk
