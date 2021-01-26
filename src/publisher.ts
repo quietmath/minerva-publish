@@ -175,7 +175,8 @@ export class Publisher {
     public rss(): void {
         if(this.config?.output?.rss) {
             console.log('Now running rss configuration.');
-            const tmpl = this.config.output.rss;
+            const tmpl = this.config.output.rss.template;
+            const maxItems = this.config.output.rss.maxItems;
             console.info(blue(`Current template string is ${ tmpl }`));
             const tmplNameParts = tmpl.replace('.hbs', '').split('/');
             console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
@@ -188,7 +189,7 @@ export class Publisher {
                 }
                 else {
                     const tmplData = [];
-                    this.files.forEach((file: string) => {
+                    this.files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string) => {
                         try {
                             console.info(blue(`Current file is ${ file }`));
                             const md = fs.readFileSync(file, { encoding: 'utf-8' });
@@ -202,7 +203,7 @@ export class Publisher {
                     });
                     console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
                     const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({ posts: tmplData });
+                    const output = template({ posts: tmplData, ...this.config.globals });
                     console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                     fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
                         .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
@@ -212,9 +213,10 @@ export class Publisher {
         }
     }
     public podcast(): void {
-        if(this.config?.output?.podcast) {
+        if(this.config?.output?.podcast?.rss) {
             console.log('Now running rss configuration.');
-            const tmpl = this.config.output.podcast.template;
+            const tmpl = this.config.output.podcast.rss.template;
+            const maxItems = this.config.output.podcast.rss.maxItems;
             const categoryProperty = this.config.output.podcast.categoryProperty;
             const key = this.config.output.podcast.key;
             console.info(blue(`Current template string is ${ tmpl }`));
@@ -229,7 +231,7 @@ export class Publisher {
                 }
                 else {
                     const tmplData = [];
-                    this.files.forEach((file: string) => {
+                    this.files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string) => {
                         try {
                             console.info(blue(`Current file is ${ file }`));
                             const md = fs.readFileSync(file, { encoding: 'utf-8' });
@@ -245,7 +247,7 @@ export class Publisher {
                     });
                     console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
                     const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({ posts: tmplData });
+                    const output = template({ posts: tmplData, ...this.config.globals });
                     console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                     fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
                         .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
@@ -268,13 +270,13 @@ export class Publisher {
             });
             if(this.config?.output?.list) {
                 const listConfig = this.config.output.list;
-                const pagingTemplate: string = listConfig.pagingTemplate;
+                const pagingTemplate: string = this.config.output.podcast.pagingTemplate;
                 const pagingFolder: string = this.config.output.podcast.folder;
                 const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
                 console.info(blue(`Current page size is ${ pageSize }`));
                 const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
                 const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
-                const templates = listConfig.templates;
+                const templates = this.config.output.podcast.templates;
                 console.info(blue(`Current list templates are ${ templates }`));
                 const files = this.files.filter((e: string) => e.endsWith('.md'));
                 console.info(blue(`Current number of markdown files are ${ files.length }`));
@@ -320,11 +322,15 @@ export class Publisher {
                                     nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
                                     prevPage: ((num - 1 == 0) ? undefined : (num - 1))
                                 };
-                                const output = template({ posts: tmplData, ...pagingLinks });
+                                const output = template({ posts: tmplData, ...pagingLinks, ...this.config.globals });
                                 //Need to page subfolder for paging
                                 console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                                 if(totalPages === 1) {
-                                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
+                                    if(pagingFolder) {
+                                        fs.ensureDirSync(`${ this.config.prefix }/${ this.config.dest }/${ pagingFolder }`);
+                                    }
+                                    const pagingFileName: string = (pagingFolder != null) ? `${ this.config.prefix }/${ this.config.dest }/${ pagingFolder }/${ tmplName }` : `${ this.config.prefix }/${ this.config.dest }/${ tmplName }`;
+                                    fs.writeFile(pagingFileName, output, { encoding:'utf-8' })
                                         .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
                                         .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
                                 }

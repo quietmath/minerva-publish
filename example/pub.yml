@@ -8,7 +8,6 @@ output:
   includeFoldersInURL: false
   includeDateInURL: false
   includeExtension: false
-  categoryProperty: tags
   list:
     pagingTemplate: templates/paging.hbs
     pagingFolder: page
@@ -16,19 +15,21 @@ output:
     order:
       orderBy: date
       direction: desc
-      type: date
     templates: [templates/index.hbs, templates/posts.hbs, templates/paging.hbs]
   view:
     templates: [templates/post.hbs]
   static:
     templates: [templates/newsletter.hbs, templates/about.hbs]
-  rss:
+  rss: 
     template: templates/rss.hbs
+    maxItems: 50
   podcast:
-    template: templates/podcast.hbs
-    rss: templates/podcast-rss.hbs
-#    folder: podcast
+    template: templates/posts.hbs
+    rss:
+      template: templates/podcast.hbs
+      maxItems: 50
+    folder: podcast
     categoryProperty: tags
     key: codepunk
 globals:
-  name: test
+  absoluteUrl: https://codepunk.io

@@ -21,7 +21,7 @@ export interface OutputConfig {
     list?: ListConfig;
     view?: ViewConfig;
     static?: StaticConfig;
-    rss?: string;
+    rss?: RSSConfig;
     podcast?: PodcastConfig;
 }
 
@@ -47,9 +47,15 @@ export interface OrderConfig {
     type: 'string' | 'number' | 'date';
 }
 
-export interface PodcastConfig {
+export interface RSSConfig {
     template: string;
-    rss: string;
+    maxItems?: number;
+}
+
+export interface PodcastConfig {
+    pagingTemplate: string;
+    templates: string[];
+    rss?: RSSConfig;
     folder?: string;
     categoryProperty: string;
     key: string;
