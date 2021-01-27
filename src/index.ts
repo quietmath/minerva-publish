@@ -26,11 +26,11 @@ else {
                 //pub.toc();
                 //pub.rss();
                 //pub.podcast();
-                pub.podcastList();
+                //pub.podcastList();
                 //pub.list();
                 //pub.view();
                 //pub.static();
-                await pub.copy();
+                //await pub.copy();
             }).catch((err) => {
                 console.error(`Could not publish files: ${ err }`);
             });

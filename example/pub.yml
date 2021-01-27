@@ -13,8 +13,9 @@ output:
     pagingFolder: page
     size: 6
     order:
-      orderBy: date
+      orderBy: datePublished
       direction: desc
+      type: date
     templates: [templates/index.hbs, templates/posts.hbs, templates/paging.hbs]
   view:
     templates: [templates/post.hbs]
@@ -24,7 +25,8 @@ output:
     template: templates/rss.hbs
     maxItems: 50
   podcast:
-    template: templates/posts.hbs
+    pagingTemplate: templates/paging.hbs
+    templates: [templates/posts.hbs, templates/paging.hbs]
     rss:
       template: templates/podcast.hbs
       maxItems: 50

@@ -88,53 +88,64 @@ export class Publisher {
     private storeFiles(): void {
         this.store = new JSONStore('minerva.json');
         this.store.create('pages');
+        const sortColumn = this.config.output.list.order.orderBy;
         const keyType = this.config?.output?.list?.order?.type;
         this.files.forEach((f: string) => {
-            const md = fs.readFileSync(f, { encoding: 'utf-8' });
-            const gray = matter(md);
-            const sortKey = gray.data[keyType];
-            if(sortKey === undefined) {
-                throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
+            try {
+                if(fs.statSync(f).isFile() && f.endsWith('.md')) {
+                    const md = fs.readFileSync(f, { encoding: 'utf-8' });
+                    const gray = matter(md);
+                    const sortKey = gray.data[sortColumn];
+                    if(sortKey === undefined) {
+                        throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
+                    }
+                    let key;
+                    switch(keyType) {
+                        case 'string':
+                            break;
+                        case 'number':
+                            try {
+                                key = parseInt(sortKey);
+                            }
+                            catch(e) {
+                                throw new Error(`The key ${ sortKey } is not a number. ${ e }`);
+                            }
+                            break;
+                        case 'date':
+                            try {
+                                const sortDate = moment(sortKey);
+                                key = sortDate.format();
+                            }
+                            catch(e) {
+                                throw new Error(`The key ${ sortKey } is not a date. ${ e }`);
+                            }
+                            break;
+                        default:
+                            try {
+                                key = f.split('/').pop();
+                            }
+                            catch(e) {
+                                throw new Error(`Failed to retrieve file name. ${ e }`);
+                            }
+                            break;
+                    }
+                    //Break apart categories and store in the data
+                    this.store.insert('pages', key, gray);
+                }
             }
-            let key;
-            switch(keyType) {
-                case 'string':
-                    break;
-                case 'number':
-                    try {
-                        key = parseInt(sortKey);
-                    }
-                    catch(e) {
-                        throw new Error(`The key ${ sortKey } is not a number. ${ e }`);
-                    }
-                    break;
-                case 'date':
-                    try {
-                        const sortDate = moment(sortKey);
-                        key = sortDate.format();
-                    }
-                    catch(e) {
-                        throw new Error(`The key ${ sortKey } is not a number. ${ e }`);
-                    }
-                    break;
-                default:
-                    try {
-                        key = f.split('/').pop();
-                    }
-                    catch(e) {
-                        throw new Error(`Failed to retrieve file name. ${ e }`);
-                    }
-                    break;
+            catch(e) {
+                console.error(red(`Error getting stats for file. ${ e }`));
             }
-            //Break apart categories and store in the data
-            this.store.insert('pages', key, gray);
         });
+        this.store.commit();
     }
     public async sanity(): Promise<void> {
         console.log('Starting sanity check.');
         if(this.tree == null) {
             this.files = await this.getAllFiles();
             console.log('Acquired files.');
+            this.storeFiles();
+            console.log('Storing files.');
             this.tree = this.buildFileTree();
             console.log('Acquired file tree.');
         }
