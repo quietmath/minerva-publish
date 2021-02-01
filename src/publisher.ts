@@ -6,9 +6,9 @@ import { Converter } from 'showdown';
 import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
 import * as moment from 'moment';
-import { blue, red } from 'chalk';
+import { blue, red, yellow } from 'chalk';
 import { range, s } from '@quietmath/proto';
-import { JSONStore } from '@quietmath/moneta';
+import { JSONStore, ResultSet } from '@quietmath/moneta';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ListConfig, ViewConfig, StaticConfig, OutputConfig, PubConfig } from './schema';
 import { registerAllHelpers } from './helpers';
@@ -285,11 +285,21 @@ export class Publisher {
                 const pagingFolder: string = this.config.output.podcast.folder;
                 const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
                 console.info(blue(`Current page size is ${ pageSize }`));
-                const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
                 const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
                 const templates = this.config.output.podcast.templates;
                 console.info(blue(`Current list templates are ${ templates }`));
-                const files = this.files.filter((e: string) => e.endsWith('.md'));
+                let files: string[];
+                if(this.store != null) {
+                    const pages: ResultSet = this.store.select('pages');
+                    console.log(pages.value);
+                }
+                else {
+                    if(orderDirection != null) {
+                        console.warn(yellow(`The [orderDirection] of ${ orderDirection } is not null, yet the files are not contained in storage. Falling back to the default.`));
+                    }
+                    files = this.files.filter((e: string) => e.endsWith('.md'));
+                }
+                /*
                 console.info(blue(`Current number of markdown files are ${ files.length }`));
 
                 templates.forEach((tmpl: string) => {
@@ -358,6 +368,7 @@ export class Publisher {
                         });
                     });
                 });
+                */
             }
         }
     }
@@ -378,7 +389,6 @@ export class Publisher {
             const pagingFolder: string = listConfig.pagingFolder;
             const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
             console.info(blue(`Current page size is ${ pageSize }`));
-            const orderBy = (listConfig.order != null && listConfig.order.orderBy) ? listConfig.order.orderBy : 'date';
             const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
             const templates = listConfig.templates;
             console.info(blue(`Current list templates are ${ templates }`));
