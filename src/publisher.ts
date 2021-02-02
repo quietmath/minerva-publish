@@ -288,10 +288,11 @@ export class Publisher {
                 const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
                 const templates = this.config.output.podcast.templates;
                 console.info(blue(`Current list templates are ${ templates }`));
-                let files: string[];
+                let files: string[] | any[];
                 if(this.store != null) {
                     const pages: ResultSet = this.store.select('pages');
-                    console.log(pages.value);
+                    //Needs to account for ascending or decending...
+                    files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
                 }
                 else {
                     if(orderDirection != null) {
@@ -299,7 +300,6 @@ export class Publisher {
                     }
                     files = this.files.filter((e: string) => e.endsWith('.md'));
                 }
-                /*
                 console.info(blue(`Current number of markdown files are ${ files.length }`));
 
                 templates.forEach((tmpl: string) => {
@@ -324,11 +324,17 @@ export class Publisher {
                                 const start = (num -1) * pageSize;
                                 const end = start + pageSize;
                                 const currentFiles: string[] = files.slice(start, end);
-                                currentFiles.forEach((file: string) => {
+                                currentFiles.forEach((file: string | any) => {
                                     try {
-                                        console.info(blue(`Current file is ${ file }`));
-                                        const md = fs.readFileSync(file, { encoding: 'utf-8' });
-                                        const gray = matter(md);
+                                        let gray: any;
+                                        if(typeof(file) === 'string') {
+                                            console.info(blue(`Current file is ${ file }`));
+                                            const md = fs.readFileSync(file, { encoding: 'utf-8' });
+                                            gray = matter(md);
+                                        }
+                                        else {
+                                            gray = file;
+                                        }
                                         gray.data.content = c.makeHtml(gray.content);
                                         gray.data['link'] = this.getOutputLink(file);
                                         tmplData.push(gray.data);
@@ -368,7 +374,6 @@ export class Publisher {
                         });
                     });
                 });
-                */
             }
         }
     }
@@ -392,7 +397,18 @@ export class Publisher {
             const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
             const templates = listConfig.templates;
             console.info(blue(`Current list templates are ${ templates }`));
-            const files = this.files.filter((e: string) => e.endsWith('.md'));
+            let files: string[] | any[];
+            if(this.store != null) {
+                const pages: ResultSet = this.store.select('pages');
+                //Needs to account for ascending or decending...
+                files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
+            }
+            else {
+                if(orderDirection != null) {
+                    console.warn(yellow(`The [orderDirection] of ${ orderDirection } is not null, yet the files are not contained in storage. Falling back to the default.`));
+                }
+                files = this.files.filter((e: string) => e.endsWith('.md'));
+            }
             console.info(blue(`Current number of markdown files are ${ files.length }`));
 
             templates.forEach((tmpl: string) => {
@@ -417,11 +433,17 @@ export class Publisher {
                             const start = (num -1) * pageSize;
                             const end = start + pageSize;
                             const currentFiles: string[] = files.slice(start, end);
-                            currentFiles.forEach((file: string) => {
+                            currentFiles.forEach((file: string | any) => {
                                 try {
-                                    console.info(blue(`Current file is ${ file }`));
-                                    const md = fs.readFileSync(file, { encoding: 'utf-8' });
-                                    const gray = matter(md);
+                                    let gray: any;
+                                    if(typeof(file) === 'string') {
+                                        console.info(blue(`Current file is ${ file }`));
+                                        const md = fs.readFileSync(file, { encoding: 'utf-8' });
+                                        gray = matter(md);
+                                    }
+                                    else {
+                                        gray = file;
+                                    }
                                     gray.data.content = c.makeHtml(gray.content);
                                     gray.data['link'] = this.getOutputLink(file);
                                     tmplData.push(gray.data);
