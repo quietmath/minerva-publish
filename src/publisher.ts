@@ -183,7 +183,7 @@ export class Publisher {
                 .catch((err) => console.info(red(`Error writing summary file: ${ err }`)));
         }
     }
-    public rss(): void {
+    public rss(): void { //ADD MONETA!!!
         if(this.config?.output?.rss) {
             console.log('Now running rss configuration.');
             const tmpl = this.config.output.rss.template;
@@ -223,7 +223,7 @@ export class Publisher {
             });
         }
     }
-    public podcast(): void {
+    public podcast(): void { //ADD MONETA!!!
         if(this.config?.output?.podcast?.rss) {
             console.log('Now running rss configuration.');
             const tmpl = this.config.output.podcast.rss.template;
