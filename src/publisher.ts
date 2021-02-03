@@ -35,12 +35,19 @@ export class Publisher {
         hb.registerPartial('layout', fs.readFileSync(`${ this.config.prefix }/${ this.config.layout }`, 'utf8'));
         registerAllHelpers(hb);
     }
-    private getOutputLink(path: string): string {
-        path = path.replace(`${ this.config.prefix }`, '')
+    private getOutputLink(path: string | any): string {
+        let p: string;
+        if(typeof(path) === 'string') {
+            p = path;
+        }
+        else {
+            p = path.filePath;
+        }
+        p = p.replace(`${ this.config.prefix }`, '')
             .replace(`${ this.config.source }/`, '')
             .replace('.md', (this.config?.output?.includeExtension ? '.html' : ''));
-        console.info(blue(`This output link path is ${ path }`));
-        return path;
+        console.info(blue(`This output link path is ${ p }`));
+        return p;
     }
     private getAllFiles(): Promise<string[]> {
         console.log('Retrieving all files.');
@@ -95,6 +102,7 @@ export class Publisher {
                 if(fs.statSync(f).isFile() && f.endsWith('.md')) {
                     const md = fs.readFileSync(f, { encoding: 'utf-8' });
                     const gray = matter(md);
+                    gray['filePath'] = f;
                     const sortKey = gray.data[sortColumn];
                     if(sortKey === undefined) {
                         throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
@@ -183,28 +191,47 @@ export class Publisher {
                 .catch((err) => console.info(red(`Error writing summary file: ${ err }`)));
         }
     }
-    public rss(): void { //ADD MONETA!!!
+    public rss(): void {
         if(this.config?.output?.rss) {
             console.log('Now running rss configuration.');
             const tmpl = this.config.output.rss.template;
             const maxItems = this.config.output.rss.maxItems;
+            const orderDirection = (this.config.output.list.order != null && this.config.output.list.order.direction) ? this.config.output.list.order.direction : 'desc';
             console.info(blue(`Current template string is ${ tmpl }`));
             const tmplNameParts = tmpl.replace('.hbs', '').split('/');
             console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
             const tmplName = tmplNameParts.pop();
             console.info(blue(`Current template name is ${ tmplName }`));
             console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
+            let files: string[] | any[];
+            if(this.store != null) {
+                const pages: ResultSet = this.store.select('pages');
+                //Needs to account for ascending or decending...
+                files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
+            }
+            else {
+                if(orderDirection != null) {
+                    console.warn(yellow(`The [orderDirection] of ${ orderDirection } is not null, yet the files are not contained in storage. Falling back to the default.`));
+                }
+                files = this.files.filter((e: string) => e.endsWith('.md'));
+            }
             fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
                 if(err != null) {
                     console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
                 }
                 else {
                     const tmplData = [];
-                    this.files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string) => {
+                    files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string | any) => {
                         try {
-                            console.info(blue(`Current file is ${ file }`));
-                            const md = fs.readFileSync(file, { encoding: 'utf-8' });
-                            const gray = matter(md);
+                            let gray: any;
+                            if(typeof(file) === 'string') {
+                                console.info(blue(`Current file is ${ file }`));
+                                const md = fs.readFileSync(file, { encoding: 'utf-8' });
+                                gray = matter(md);
+                            }
+                            else {
+                                gray = file;
+                            }
                             gray.data['link'] = this.getOutputLink(file);
                             tmplData.push(gray.data);
                         }
@@ -228,6 +255,7 @@ export class Publisher {
             console.log('Now running rss configuration.');
             const tmpl = this.config.output.podcast.rss.template;
             const maxItems = this.config.output.podcast.rss.maxItems;
+            const orderDirection = (this.config.output.list.order != null && this.config.output.list.order.direction) ? this.config.output.list.order.direction : 'desc';
             const categoryProperty = this.config.output.podcast.categoryProperty;
             const key = this.config.output.podcast.key;
             console.info(blue(`Current template string is ${ tmpl }`));
@@ -236,17 +264,35 @@ export class Publisher {
             const tmplName = tmplNameParts.pop();
             console.info(blue(`Current template name is ${ tmplName }`));
             console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
+            let files: string[] | any[];
+            if(this.store != null) {
+                const pages: ResultSet = this.store.select('pages');
+                //Needs to account for ascending or decending...
+                files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
+            }
+            else {
+                if(orderDirection != null) {
+                    console.warn(yellow(`The [orderDirection] of ${ orderDirection } is not null, yet the files are not contained in storage. Falling back to the default.`));
+                }
+                files = this.files.filter((e: string) => e.endsWith('.md'));
+            }
             fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
                 if(err != null) {
                     console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
                 }
                 else {
                     const tmplData = [];
-                    this.files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string) => {
+                    files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string | any) => {
                         try {
-                            console.info(blue(`Current file is ${ file }`));
-                            const md = fs.readFileSync(file, { encoding: 'utf-8' });
-                            const gray = matter(md);
+                            let gray: any;
+                            if(typeof(file) === 'string') {
+                                console.info(blue(`Current file is ${ file }`));
+                                const md = fs.readFileSync(file, { encoding: 'utf-8' });
+                                gray = matter(md);
+                            }
+                            else {
+                                gray = file;
+                            }
                             gray.data['link'] = this.getOutputLink(file);
                             if(gray.data[categoryProperty] != null && gray.data[categoryProperty].toLowerCase().indexOf(key) !== -1) {
                                 tmplData.push(gray.data);
@@ -287,6 +333,8 @@ export class Publisher {
                 console.info(blue(`Current page size is ${ pageSize }`));
                 const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
                 const templates = this.config.output.podcast.templates;
+                const categoryProperty = this.config.output.podcast.categoryProperty;
+                const key = this.config.output.podcast.key;
                 console.info(blue(`Current list templates are ${ templates }`));
                 let files: string[] | any[];
                 if(this.store != null) {
@@ -337,7 +385,9 @@ export class Publisher {
                                         }
                                         gray.data.content = c.makeHtml(gray.content);
                                         gray.data['link'] = this.getOutputLink(file);
-                                        tmplData.push(gray.data);
+                                        if(gray.data[categoryProperty] != null && gray.data[categoryProperty].toLowerCase().indexOf(key) !== -1) {
+                                            tmplData.push(gray.data);
+                                        }
                                     }
                                     catch(e) {
                                         console.info(red(`Unable to open file ${ this.config.prefix }/${ file }: ${ e }`));
