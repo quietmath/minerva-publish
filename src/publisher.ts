@@ -341,6 +341,7 @@ export class Publisher {
                     const pages: ResultSet = this.store.select('pages');
                     //Needs to account for ascending or decending...
                     files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
+                    files = files.filter((e: any) => e.data[categoryProperty] != null && e.data[categoryProperty].toLowerCase().indexOf(key) !== -1);
                 }
                 else {
                     if(orderDirection != null) {
@@ -363,7 +364,7 @@ export class Publisher {
                         if(tmpl != pagingTemplate) {
                             totalPages = 1;
                         }
-                        range(totalPages).forEach((num: number) => { //This will not work without the database...
+                        range(totalPages).forEach((num: number) => {
                             if(err != null) {
                                 console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
                             }
