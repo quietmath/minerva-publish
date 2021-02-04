@@ -250,7 +250,7 @@ export class Publisher {
             });
         }
     }
-    public podcast(): void { //ADD MONETA!!!
+    public podcast(): void {
         if(this.config?.output?.podcast?.rss) {
             console.log('Now running rss configuration.');
             const tmpl = this.config.output.podcast.rss.template;
