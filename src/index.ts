@@ -21,6 +21,7 @@ else {
         console.log('Publishing files');
         pub.sanity()
             .then(async () => {
+                pub.clean();
                 pub.outline();
                 pub.toc();
                 pub.rss();

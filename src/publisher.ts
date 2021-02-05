@@ -158,6 +158,10 @@ export class Publisher {
             console.log('Acquired file tree.');
         }
     }
+    public clean(): void {
+        console.info(blue(`Cleaning ${ this.config.prefix }/${ this.config.dest }`));
+        fs.emptyDirSync(`${ this.config.prefix }/${ this.config.dest }`);
+    }
     public outline(): void {
         const self: Publisher = this;
         if(this.config?.output?.outline) {
@@ -198,7 +202,7 @@ export class Publisher {
             const maxItems = this.config.output.rss.maxItems;
             const orderDirection = (this.config.output.list.order != null && this.config.output.list.order.direction) ? this.config.output.list.order.direction : 'desc';
             console.info(blue(`Current template string is ${ tmpl }`));
-            const tmplNameParts = tmpl.replace('.hbs', '').split('/');
+            const tmplNameParts = tmpl.replace('.hbs', '.xml').split('/');
             console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
             const tmplName = tmplNameParts.pop();
             console.info(blue(`Current template name is ${ tmplName }`));
@@ -259,7 +263,7 @@ export class Publisher {
             const categoryProperty = this.config.output.podcast.categoryProperty;
             const key = this.config.output.podcast.key;
             console.info(blue(`Current template string is ${ tmpl }`));
-            const tmplNameParts = tmpl.replace('.hbs', '').split('/');
+            const tmplNameParts = tmpl.replace('.hbs', '.xml').split('/');
             console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
             const tmplName = tmplNameParts.pop();
             console.info(blue(`Current template name is ${ tmplName }`));
