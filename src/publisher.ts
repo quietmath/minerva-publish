@@ -9,9 +9,9 @@ import * as moment from 'moment';
 import { blue, red, yellow } from 'chalk';
 import { range, s } from '@quietmath/proto';
 import { JSONStore, ResultSet } from '@quietmath/moneta';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ListConfig, ViewConfig, StaticConfig, OutputConfig, PubConfig } from './schema';
-import { registerAllHelpers } from './helpers';
+import { PubConfig } from './schema';
+import { registerAllPartials, registerAllHelpers } from './helpers';
+import { getOutputLink } from './structure';
 
 /**
  * @module quietmath/minerva-publish
@@ -25,29 +25,12 @@ export class Publisher {
     private config: PubConfig;
     constructor(config: PubConfig) {
         this.config = config;
-        if(this.config.prefix !== undefined) {
-            console.log('Prefix is absolute.');
-        }
-        else {
+        if(this.config.prefix === undefined) {
             this.config.prefix = process.cwd();
-            console.info(blue(`Prefix is ${ this.config.prefix }`));
-        }
-        hb.registerPartial('layout', fs.readFileSync(`${ this.config.prefix }/${ this.config.layout }`, 'utf8'));
+        }           
+        console.info(blue(`Prefix is ${ this.config.prefix }`));
+        registerAllPartials(hb, this.config);
         registerAllHelpers(hb);
-    }
-    private getOutputLink(path: string | any): string {
-        let p: string;
-        if(typeof(path) === 'string') {
-            p = path;
-        }
-        else {
-            p = path.filePath;
-        }
-        p = p.replace(`${ this.config.prefix }`, '')
-            .replace(`${ this.config.source }/`, '')
-            .replace('.md', (this.config?.output?.includeExtension ? '.html' : ''));
-        console.info(blue(`This output link path is ${ p }`));
-        return p;
     }
     private getAllFiles(): Promise<string[]> {
         console.log('Retrieving all files.');
@@ -236,7 +219,7 @@ export class Publisher {
                             else {
                                 gray = file;
                             }
-                            gray.data['link'] = this.getOutputLink(file);
+                            gray.data['link'] = getOutputLink(file, this.config);
                             tmplData.push(gray.data);
                         }
                         catch(e) {
@@ -297,7 +280,7 @@ export class Publisher {
                             else {
                                 gray = file;
                             }
-                            gray.data['link'] = this.getOutputLink(file);
+                            gray.data['link'] = getOutputLink(file, this.config);
                             if(gray.data[categoryProperty] != null && gray.data[categoryProperty].toLowerCase().indexOf(key) !== -1) {
                                 tmplData.push(gray.data);
                             }
@@ -389,7 +372,7 @@ export class Publisher {
                                             gray = file;
                                         }
                                         gray.data.content = c.makeHtml(gray.content);
-                                        gray.data['link'] = this.getOutputLink(file);
+                                        gray.data['link'] = getOutputLink(file, this.config);
                                         if(gray.data[categoryProperty] != null && gray.data[categoryProperty].toLowerCase().indexOf(key) !== -1) {
                                             tmplData.push(gray.data);
                                         }
@@ -500,7 +483,7 @@ export class Publisher {
                                         gray = file;
                                     }
                                     gray.data.content = c.makeHtml(gray.content);
-                                    gray.data['link'] = this.getOutputLink(file);
+                                    gray.data['link'] = getOutputLink(file, this.config);
                                     tmplData.push(gray.data);
                                 }
                                 catch(e) {
