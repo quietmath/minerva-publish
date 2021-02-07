@@ -1,6 +1,10 @@
 import * as fs from 'fs-extra';
 import { PubConfig } from './schema';
 
+/**
+ * @module quietmath/minerva-publish
+ */
+
 export const registerAllPartials = (hb: any, config: PubConfig): void => {
     hb.registerPartial('layout', fs.readFileSync(`${ config.prefix }/${ config.layout }`, 'utf8'));
 };

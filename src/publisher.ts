@@ -1,15 +1,14 @@
 /* eslint-disable no-inner-declarations */
 /* eslint-disable @typescript-eslint/no-this-alias */
-import * as glob from 'glob';
 import * as fs from 'fs-extra';
 import { Converter } from 'showdown';
 import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
-import * as moment from 'moment';
 import { blue, red, yellow } from 'chalk';
 import { range, s } from '@quietmath/proto';
 import { JSONStore, ResultSet } from '@quietmath/moneta';
 import { PubConfig } from './schema';
+import { buildFileTree, getAllFiles, storeFiles } from './file';
 import { registerAllPartials, registerAllHelpers } from './helpers';
 import { getOutputLink } from './structure';
 
@@ -32,112 +31,14 @@ export class Publisher {
         registerAllPartials(hb, this.config);
         registerAllHelpers(hb);
     }
-    private getAllFiles(): Promise<string[]> {
-        console.log('Retrieving all files.');
-        return new Promise((resolve, reject): any => {
-            glob(`${ this.config.prefix }/${ this.config.source }/**/**`, { 'ignore': ['**/node_modules/**', `**/${ this.config.prefix }/${ this.config.dest }/**`, '**/SUMMARY.md'], mark: true }, async (err: Error, files: string[]) => {
-                if(err != null) {
-                    reject(`An error has occurred: ${ err }`);
-                }
-                resolve(files);
-            });
-        });
-        
-    }
-    private buildFileTree(): any {
-        const self: Publisher = this;
-        function getFilename(path: string): string {
-            return path.split('/').filter((e: string): number => {
-                return e && e.length;
-            }).reverse()[0];
-        }
-        function findSubPaths(path: string): string[] {
-            const rePath: string = path.replace('/', '\\/');
-            const re = new RegExp('^' + rePath + '[^\\/]*\\/?$');
-            return self.files.filter(function(i: string): boolean {
-                return i !== path && re.test(i);
-            });
-        }
-        function buildTree(path?: string): any[] {
-            path = path || '';
-            const nodeList: any[] = [];
-            findSubPaths(path).forEach(function(subPath: string): void {
-                const nodeName = getFilename(subPath);
-                if (/\/$/.test(subPath)) {
-                    const node = {};
-                    node[nodeName] = buildTree(subPath);
-                    nodeList.push(node);
-                } else {
-                    nodeList.push(nodeName);
-                }
-            });
-            return nodeList;
-        }
-        return buildTree();
-    }
-    private storeFiles(): void {
-        this.store = new JSONStore('minerva.json');
-        this.store.create('pages');
-        const sortColumn = this.config.output.list.order.orderBy;
-        const keyType = this.config?.output?.list?.order?.type;
-        this.files.forEach((f: string) => {
-            try {
-                if(fs.statSync(f).isFile() && f.endsWith('.md')) {
-                    const md = fs.readFileSync(f, { encoding: 'utf-8' });
-                    const gray = matter(md);
-                    gray['filePath'] = f;
-                    const sortKey = gray.data[sortColumn];
-                    if(sortKey === undefined) {
-                        throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
-                    }
-                    let key;
-                    switch(keyType) {
-                        case 'string':
-                            break;
-                        case 'number':
-                            try {
-                                key = parseInt(sortKey);
-                            }
-                            catch(e) {
-                                throw new Error(`The key ${ sortKey } is not a number. ${ e }`);
-                            }
-                            break;
-                        case 'date':
-                            try {
-                                const sortDate = moment(sortKey);
-                                key = sortDate.format();
-                            }
-                            catch(e) {
-                                throw new Error(`The key ${ sortKey } is not a date. ${ e }`);
-                            }
-                            break;
-                        default:
-                            try {
-                                key = f.split('/').pop();
-                            }
-                            catch(e) {
-                                throw new Error(`Failed to retrieve file name. ${ e }`);
-                            }
-                            break;
-                    }
-                    //Break apart categories and store in the data
-                    this.store.insert('pages', key, gray);
-                }
-            }
-            catch(e) {
-                console.error(red(`Error getting stats for file. ${ e }`));
-            }
-        });
-        this.store.commit();
-    }
     public async sanity(): Promise<void> {
         console.log('Starting sanity check.');
         if(this.tree == null) {
-            this.files = await this.getAllFiles();
+            this.files = await getAllFiles(this.config);
             console.log('Acquired files.');
-            this.storeFiles();
+            this.store = storeFiles(this.files, this.config);
             console.log('Storing files.');
-            this.tree = this.buildFileTree();
+            this.tree = buildFileTree(this.files);
             console.log('Acquired file tree.');
         }
     }
