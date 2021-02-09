@@ -28,7 +28,7 @@ output:
     pagingTemplate: templates/paging.hbs
     templates: [templates/posts.hbs, templates/paging.hbs]
     rss:
-      template: templates/podcast.hbs
+      template: templates/podcast/rss.hbs
       maxItems: 50
     folder: podcast
     categoryProperty: tags
