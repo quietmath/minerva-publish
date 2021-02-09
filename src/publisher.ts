@@ -146,6 +146,7 @@ export class Publisher {
             const orderDirection = (this.config.output.list.order != null && this.config.output.list.order.direction) ? this.config.output.list.order.direction : 'desc';
             const categoryProperty = this.config.output.podcast.categoryProperty;
             const key = this.config.output.podcast.key;
+            const podcastFolder: string = this.config.output.podcast.folder;
             console.info(blue(`Current template string is ${ tmpl }`));
             const tmplNameParts = tmpl.replace('.hbs', '.xml').split('/');
             console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
@@ -194,8 +195,12 @@ export class Publisher {
                     const template = hb.compile(data.toString('utf-8'), { });
                     const output = template({ posts: tmplData, ...this.config.globals });
                     console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
-                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
-                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
+                    if(podcastFolder) {
+                        fs.ensureDirSync(`${ this.config.prefix }/${ this.config.dest }/${ podcastFolder }`);
+                    }
+                    const podcastFileName: string = (podcastFolder != null) ? `${ podcastFolder }/${ tmplName }` : `${ tmplName }`;
+                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ podcastFileName }`, output, { encoding:'utf-8' })
+                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ podcastFileName }` }`))
                         .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
                 }
             });
@@ -286,7 +291,8 @@ export class Publisher {
                                 const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
                                 const pagingLinks = {
                                     nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
-                                    prevPage: ((num - 1 == 0) ? undefined : (num - 1))
+                                    prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
+                                    pagingFolder: pagingFolder
                                 };
                                 const output = template({ posts: tmplData, ...pagingLinks, ...this.config.globals });
                                 //Need to page subfolder for paging
@@ -395,7 +401,8 @@ export class Publisher {
                             const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
                             const pagingLinks = {
                                 nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
-                                prevPage: ((num - 1 == 0) ? undefined : (num - 1))
+                                prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
+                                pagingFolder: pagingFolder
                             };
                             const output = template({ posts: tmplData, ...pagingLinks });
                             //Need to page subfolder for paging
