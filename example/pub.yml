@@ -20,7 +20,7 @@ output:
   view:
     templates: [templates/post.hbs]
   static:
-    templates: [templates/newsletter.hbs, templates/about.hbs]
+    templates: [templates/about.hbs]
   rss: 
     template: templates/rss.hbs
     maxItems: 50
