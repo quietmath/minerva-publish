@@ -2,7 +2,7 @@ prefix: /home/szul/code/quietmath/codepunk.io
 source: content
 dest: public
 layout: templates/layout.hbs
-assets: [content/images, content/css]
+assets: [content/images, content/css, content/js]
 output:
   outline: false
   includeFoldersInURL: false
