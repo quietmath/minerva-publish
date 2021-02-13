@@ -1,4 +1,5 @@
 import * as fs from 'fs-extra';
+import * as moment from 'moment';
 import { PubConfig } from './schema';
 
 /**
@@ -17,6 +18,10 @@ export const registerAllHelpers = (hb: any): void => {
             return true;
         }
         return false;
+    });
+
+    hb.registerHelper('formatRSSDate', (date: string): string => {
+        return `${ moment(date).format('ddd, DD MMM YYYY hh:mm:ss') } EST`;
     });
 
 };
