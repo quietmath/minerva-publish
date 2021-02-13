@@ -21,6 +21,9 @@ export const registerAllHelpers = (hb: any): void => {
     });
 
     hb.registerHelper('formatRSSDate', (date: string): string => {
+        if(date == null || date == '') {
+            return `${ moment().format('ddd, DD MMM YYYY hh:mm:ss') } EST`;
+        }
         return `${ moment(date).format('ddd, DD MMM YYYY hh:mm:ss') } EST`;
     });
 
