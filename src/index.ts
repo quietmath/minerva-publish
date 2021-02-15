@@ -13,14 +13,14 @@ if(yargs.argv.f === undefined || (yargs.argv.f as string).trim() === '') {
 }
 else {
     console.info(blue(`Reading file ${ yargs.argv.f }`));
-    const data = fs.readFileSync(yargs.argv.f as string, 'utf-8');
+    const data: string = fs.readFileSync(yargs.argv.f as string, 'utf-8');
     if(data != null) {
         console.info(blue(`Parsing file ${ yargs.argv.f }`));
         console.log('Creating publishing engine.');
-        const pub = new Publisher(parseYAML(data));
+        const pub: Publisher = new Publisher(parseYAML(data));
         console.log('Publishing files');
         pub.sanity()
-            .then(async () => {
+            .then(async (): Promise<void> => {
                 pub.clean();
                 pub.outline();
                 pub.toc();
@@ -31,7 +31,7 @@ else {
                 pub.view();
                 pub.static();
                 await pub.copy();
-            }).catch((err) => {
+            }).catch((err: any) => {
                 console.error(red(`Could not publish files: ${ err }`));
             });
     }

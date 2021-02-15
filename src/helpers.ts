@@ -12,8 +12,8 @@ export const registerAllPartials = (hb: any, config: PubConfig): void => {
 
 export const registerAllHelpers = (hb: any): void => {
 
-    hb.registerHelper('range', (current: number, start: number, end: number) => {
-        const adjusted = current + 1;
+    hb.registerHelper('range', (current: number, start: number, end: number): boolean => {
+        const adjusted: number = current + 1;
         if((start <= adjusted) && (adjusted <= end)) {
             return true;
         }

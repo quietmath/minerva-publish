@@ -11,15 +11,16 @@ import { PubConfig } from './schema';
  */
 
 const getFilename = (path: string): string => {
-    return path.split('/').filter((e: string): number => {
-        return e && e.length;
-    }).reverse()[0];
+    return path.split('/')
+        .filter((e: string): number => {
+            return e && e.length;
+        }).reverse()[0];
 };
 
 const findSubPaths = (files: string[], path: string): string[] => {
     const rePath: string = path.replace('/', '\\/');
     const re = new RegExp('^' + rePath + '[^\\/]*\\/?$');
-    return files.filter(function(i: string): boolean {
+    return files.filter((i: string): boolean => {
         return i !== path && re.test(i);
     });
 };
@@ -27,10 +28,10 @@ const findSubPaths = (files: string[], path: string): string[] => {
 const buildTree = (files: string[], path?: string): any[] => {
     path = path || '';
     const nodeList: any[] = [];
-    findSubPaths(files, path).forEach(function(subPath: string): void {
-        const nodeName = getFilename(subPath);
+    findSubPaths(files, path).forEach((subPath: string): void => {
+        const nodeName: string = getFilename(subPath);
         if (/\/$/.test(subPath)) {
-            const node = {};
+            const node: any = {};
             node[nodeName] = buildTree(files, subPath);
             nodeList.push(node);
         } else {
@@ -42,7 +43,7 @@ const buildTree = (files: string[], path?: string): any[] => {
 
 export const getAllFiles = (config: PubConfig): Promise<string[]> => {
     console.log('Retrieving all files.');
-    return new Promise((resolve, reject): any => {
+    return new Promise((resolve, reject): void => {
         glob(`${ config.prefix }/${ config.source }/**/**`, { 'ignore': ['**/node_modules/**', `**/${ config.prefix }/${ config.dest }/**`, '**/SUMMARY.md'], mark: true }, async (err: Error, files: string[]) => {
             if(err != null) {
                 reject(`An error has occurred: ${ err }`);
@@ -58,21 +59,21 @@ export const buildFileTree = (files: string[]): any => {
 };
 
 export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
-    const store = new JSONStore('minerva.json');
+    const store: JSONStore = new JSONStore('minerva.json');
     store.create('pages');
-    const sortColumn = config.output.list.order.orderBy;
-    const keyType = config?.output?.list?.order?.type;
-    files.forEach((f: string) => {
+    const sortColumn: string = config?.output?.list?.order?.orderBy;
+    const keyType: string = config?.output?.list?.order?.type;
+    files.forEach((f: string): void => {
         try {
             if(fs.statSync(f).isFile() && f.endsWith('.md')) {
-                const md = fs.readFileSync(f, { encoding: 'utf-8' });
-                const gray = matter(md);
+                const md: string = fs.readFileSync(f, { encoding: 'utf-8' });
+                const gray: any = matter(md);
                 gray['filePath'] = f;
-                const sortKey = gray.data[sortColumn];
+                const sortKey: string = gray.data[sortColumn];
                 if(sortKey === undefined) {
                     throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
                 }
-                let key;
+                let key: string | number | Date;
                 switch(keyType) {
                     case 'string':
                         break;
@@ -80,7 +81,7 @@ export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
                         try {
                             key = parseInt(sortKey);
                         }
-                        catch(e) {
+                        catch(e: any) {
                             throw new Error(`The key ${ sortKey } is not a number. ${ e }`);
                         }
                         break;
@@ -89,7 +90,7 @@ export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
                             const sortDate = moment(sortKey);
                             key = sortDate.format();
                         }
-                        catch(e) {
+                        catch(e: any) {
                             throw new Error(`The key ${ sortKey } is not a date. ${ e }`);
                         }
                         break;
@@ -97,16 +98,15 @@ export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
                         try {
                             key = f.split('/').pop();
                         }
-                        catch(e) {
+                        catch(e: any) {
                             throw new Error(`Failed to retrieve file name. ${ e }`);
                         }
                         break;
                 }
-                //Break apart categories/tags and store in the data
-                store.insert('pages', key, gray);
+                store.insert('pages', key as string, gray);
             }
         }
-        catch(e) {
+        catch(e: any) {
             console.error(red(`Error getting stats for file. ${ e }`));
         }
     });
