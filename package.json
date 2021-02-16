@@ -1,6 +1,6 @@
 {
   "name": "@quietmath/minerva-publish",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Static site generator and package for converting Markdown files to HTML.",
   "main": "./dist/index.js",
   "types": "./dist/index",
