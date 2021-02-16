@@ -129,7 +129,7 @@ export class Publisher {
                     });
                     console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
                     const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({ posts: tmplData, ...this.config.globals });
+                    const output = template({ posts: tmplData, ...this.config.globals, _publisher: { files: this.files, store: this.store, config: this.config } });
                     console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                     fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
                         .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
@@ -193,7 +193,7 @@ export class Publisher {
                     });
                     console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
                     const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({ posts: tmplData, ...this.config.globals });
+                    const output = template({ posts: tmplData, ...this.config.globals, _publisher: { files: this.files, store: this.store, config: this.config } });
                     console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                     if(podcastFolder) {
                         fs.ensureDirSync(`${ this.config.prefix }/${ this.config.dest }/${ podcastFolder }`);
@@ -294,7 +294,7 @@ export class Publisher {
                                     prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
                                     pagingFolder: pagingFolder
                                 };
-                                const output = template({ posts: tmplData, ...pagingLinks, ...this.config.globals });
+                                const output = template({ posts: tmplData, ...pagingLinks, ...this.config.globals, _publisher: { files: this.files, store: this.store, config: this.config } });
                                 //Need to page subfolder for paging
                                 console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                                 if(totalPages === 1) {
@@ -404,7 +404,7 @@ export class Publisher {
                                 prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
                                 pagingFolder: pagingFolder
                             };
-                            const output = template({ posts: tmplData, ...pagingLinks });
+                            const output = template({ posts: tmplData, ...pagingLinks, _publisher: { files: this.files, store: this.store, config: this.config } });
                             //Need to page subfolder for paging
                             console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                             if(totalPages === 1) {
@@ -443,7 +443,7 @@ export class Publisher {
                     });
                     const html = c.makeHtml(md);
                     const template = hb.compile(html);
-                    const output = template({ });
+                    const output = template({ _publisher: { files: this.files, store: this.store, config: this.config } });
                     
                     fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/TOC.html`, output, { encoding:'utf-8' })
                         .then(() => console.log(`Wrote TOC file to ${ `${ this.config.prefix }/${ this.config.dest }/TOC.html` }`))
@@ -496,7 +496,7 @@ export class Publisher {
                                     const gray = matter(md);
                                     gray.data.content = c.makeHtml(gray.content);
                                     const template = hb.compile('{{#> layout }}' + tmplData.toString('utf-8') + '{{/layout}}', { });
-                                    const output = template({ ...this.config.globals, ...gray.data });
+                                    const output = template({ ...this.config.globals, ...gray.data, _publisher: { files: this.files, store: this.store, config: this.config } });
                                     fs.writeFile(`${ outputFile }`, output, (e) => {
                                         if(e != null) {
                                             console.info(red(`Failed to write file ${ e }`));
@@ -529,7 +529,7 @@ export class Publisher {
                         console.info(blue(`Current output file is ${ outputFile }`));
                         const html = tmplData.toString('utf-8');
                         const template = hb.compile('{{#> layout }}' + html + '{{/layout}}', { });
-                        const output = template({ ...this.config.globals, ...{ content: html } });
+                        const output = template({ ...this.config.globals, ...{ content: html }, _publisher: { files: this.files, store: this.store, config: this.config } });
                         fs.writeFile(`${ outputFile }`, output, (e) => {
                             if(e != null) {
                                 console.info(red(`Failed to write file ${ e }`));
