@@ -1,27 +1,27 @@
 /* eslint-disable no-inner-declarations */
-/* eslint-disable @typescript-eslint/no-this-alias */
 import * as fs from 'fs-extra';
 import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
 import { Converter } from 'showdown';
 import { blue, red, yellow } from 'chalk';
-import { range, s } from '@quietmath/proto';
+import { range } from '@quietmath/proto';
 import { JSONStore, ResultSet } from '@quietmath/moneta';
 import { PubConfig } from './schema';
-import { buildFileTree, getAllFiles, storeFiles } from './file';
-import { registerAllPartials, registerAllHelpers } from './helpers';
+import { buildFileTree, getFiles, getFilesFromDisc, storeFiles } from './file';
+import { registerAllPartials, registerAllHelpers } from './handlebars';
 import { getOutputLink } from './structure';
+import { buildOutline, getTemplateData } from './helpers';
 
 /**
  * @module quietmath/minerva-publish
  */
 
 export class Publisher {
-    private files: string[];
+    public files: string[];
     private store: JSONStore;
     private tree: any;
-    private summary: string;
-    private config: PubConfig;
+    public summary: string;
+    public config: PubConfig;
     constructor(config: PubConfig) {
         this.config = config;
         if(this.config.prefix === undefined) {
@@ -32,14 +32,11 @@ export class Publisher {
         registerAllHelpers(hb);
     }
     public async sanity(): Promise<void> {
-        console.log('Starting sanity check.');
+        console.log('Performing sanity check.');
         if(this.tree == null) {
-            this.files = await getAllFiles(this.config);
-            console.log('Acquired files.');
+            this.files = await getFilesFromDisc(this.config);
             this.store = storeFiles(this.files, this.config);
-            console.log('Storing files.');
             this.tree = buildFileTree(this.files);
-            console.log('Acquired file tree.');
         }
     }
     public clean(): void {
@@ -47,33 +44,10 @@ export class Publisher {
         fs.emptyDirSync(`${ this.config.prefix }/${ this.config.dest }`);
     }
     public outline(): void {
-        const self: Publisher = this;
         if(this.config?.output?.outline) {
-            function addHashes(key: string, offset: number): string {
-                const file: string = self.files.find((e: string) => e.indexOf(key) !== -1);
-                const range: number = file.split('/').length + offset;
-                for(let i = 0; i < range; i++) {
-                    self.summary += `#`;
-                }
-                return file.replace(`${ self.config.source }`, '.');
-            }
-            function buildOutline(arr: any): void {
-                arr.forEach((itm: any | string) => {
-                    if(typeof(itm) !== 'string') {
-                        const key = Object.keys(itm)[0];
-                        addHashes(key, -1);
-                        self.summary += ` ${ s(key.replace(/_/ig, ' ')).capWords().toString() }\n\n`;
-                        buildOutline(itm[key]);
-                    }
-                    else {
-                        const anchor = addHashes(itm, 0);
-                        self.summary += ` [${ s(itm.replace(/\.md/ig,'').replace(/_/ig,' ')).capWords().toString() }](${ anchor })\n\n`;
-                    }
-                });
-            }
             this.summary = '# Summary\n\n';
             const startKey = Object.keys(this.tree[0]).find((e: string) => e === this.config.source);
-            buildOutline(this.tree[0][startKey]);
+            buildOutline(this, this.tree[0][startKey]);
             fs.writeFile(`${ this.config.prefix }/${ this.config.source }/SUMMARY.md`, this.summary, { encoding:'utf-8' })
                 .then(() => console.log(`Wrote summary file to ${ `${ this.config.prefix }/${ this.config.source }/SUMMARY.md` }`))
                 .catch((err) => console.info(red(`Error writing summary file: ${ err }`)));
@@ -81,28 +55,13 @@ export class Publisher {
     }
     public rss(): void {
         if(this.config?.output?.rss) {
-            console.log('Now running rss configuration.');
             const tmpl = this.config.output.rss.template;
             const maxItems = this.config.output.rss.maxItems;
-            const orderDirection = (this.config.output.list.order != null && this.config.output.list.order.direction) ? this.config.output.list.order.direction : 'desc';
-            console.info(blue(`Current template string is ${ tmpl }`));
             const tmplNameParts = tmpl.replace('.hbs', '.xml').split('/');
-            console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
             const tmplName = tmplNameParts.pop();
             console.info(blue(`Current template name is ${ tmplName }`));
-            console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
-            let files: string[] | any[];
-            if(this.store != null) {
-                const pages: ResultSet = this.store.select('pages');
-                //Needs to account for ascending or decending...
-                files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
-            }
-            else {
-                if(orderDirection != null) {
-                    console.warn(yellow(`The [orderDirection] of ${ orderDirection } is not null, yet the files are not contained in storage. Falling back to the default.`));
-                }
-                files = this.files.filter((e: string) => e.endsWith('.md'));
-            }
+            console.info(blue(`Current template to read is ${ this.config.prefix }/${ tmpl }`));
+            const files: string[] | any[] = getFiles(this.store, this.config, this.files);
             fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
                 if(err != null) {
                     console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
@@ -110,26 +69,22 @@ export class Publisher {
                 else {
                     const tmplData = [];
                     files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string | any) => {
-                        try {
-                            let gray: any;
-                            if(typeof(file) === 'string') {
-                                console.info(blue(`Current file is ${ file }`));
-                                const md = fs.readFileSync(file, { encoding: 'utf-8' });
-                                gray = matter(md);
-                            }
-                            else {
-                                gray = file;
-                            }
-                            gray.data['link'] = getOutputLink(file, this.config);
-                            tmplData.push(gray.data);
-                        }
-                        catch(e) {
-                            console.info(red(`Unable to open file ${ this.config.prefix }/${ file }: ${ e }`));
+                        const d = getTemplateData(file, this.config);
+                        if(d != null) {
+                            tmplData.push(d);
                         }
                     });
                     console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
                     const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({ posts: tmplData, ...this.config.globals, _publisher: { files: this.files, store: this.store, config: this.config } });
+                    const output = template({
+                        posts: tmplData,
+                        ...this.config.globals,
+                        _publisher: {
+                            files: this.files,
+                            store: this.store,
+                            config: this.config
+                        }
+                    });
                     console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                     fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
                         .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
@@ -140,7 +95,6 @@ export class Publisher {
     }
     public podcast(): void {
         if(this.config?.output?.podcast?.rss) {
-            console.log('Now running rss configuration.');
             const tmpl = this.config.output.podcast.rss.template;
             const maxItems = this.config.output.podcast.rss.maxItems;
             const orderDirection = (this.config.output.list.order != null && this.config.output.list.order.direction) ? this.config.output.list.order.direction : 'desc';
@@ -208,7 +162,6 @@ export class Publisher {
     }
     public podcastList(): void {
         if(this.config?.output?.podcast && this.config?.output?.podcast?.folder) {
-            console.log('Now running list configuration.');
             const c = new Converter({
                 ghCompatibleHeaderId: true,
                 parseImgDimensions: true,
@@ -323,7 +276,6 @@ export class Publisher {
         }
     }
     public list(): void {
-        console.log('Now running list configuration.');
         const c = new Converter({
             ghCompatibleHeaderId: true,
             parseImgDimensions: true,
@@ -456,7 +408,6 @@ export class Publisher {
         }
     }
     public view(): void {
-        console.log('Now running view configuration.');
         const c = new Converter({
             ghCompatibleHeaderId: true,
             parseImgDimensions: true,
@@ -481,13 +432,13 @@ export class Publisher {
                     }
                     else {
                         files.forEach(async (f) => {
-                            console.log(`Publishing file ${ f }`);
+                            console.info(`Publishing file ${ f }`);
                             const outputFile = `${ this.config.prefix }/${ this.config.dest }/${ f.replace(`${ this.config.prefix }/`,'')
                                 .replace(`${ this.config.source }/`, '')
                                 .replace('.md','.html') }`;
                             console.info(blue(`Current output file is ${ outputFile }`));
                             const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
-                            console.log(`Current output directory is ${ outputDir }`);
+                            console.info(`Current output directory is ${ outputDir }`);
                             await fs.ensureDir(outputDir);
                             fs.readFile(f, (err, data) => {
                                 console.info(blue(`Current file is ${ f }`));
@@ -514,7 +465,6 @@ export class Publisher {
         }
     }
     public static(): void {
-        console.log('Now running static configuration.');
         const staticConfig = this.config?.output?.static;
         if(staticConfig) {
             const templates = staticConfig.templates;

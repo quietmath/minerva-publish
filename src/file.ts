@@ -2,8 +2,8 @@ import * as glob from 'glob';
 import * as fs from 'fs-extra';
 import * as matter from 'gray-matter';
 import * as moment from 'moment';
-import { red } from 'chalk';
-import { JSONStore } from '@quietmath/moneta';
+import { red, yellow } from 'chalk';
+import { JSONStore, ResultSet } from '@quietmath/moneta';
 import { PubConfig } from './schema';
 
 /**
@@ -41,8 +41,7 @@ const buildTree = (files: string[], path?: string): any[] => {
     return nodeList;
 };
 
-export const getAllFiles = (config: PubConfig): Promise<string[]> => {
-    console.log('Retrieving all files.');
+export const getFilesFromDisc = (config: PubConfig): Promise<string[]> => {
     return new Promise((resolve, reject): void => {
         glob(`${ config.prefix }/${ config.source }/**/**`, { 'ignore': ['**/node_modules/**', `**/${ config.prefix }/${ config.dest }/**`, '**/SUMMARY.md'], mark: true }, async (err: Error, files: string[]) => {
             if(err != null) {
@@ -52,6 +51,25 @@ export const getAllFiles = (config: PubConfig): Promise<string[]> => {
         });
     });
     
+};
+
+export const getFiles = (store: JSONStore, config: PubConfig, files: string[]): any[] | string[] => {
+    if(store != null) {
+        const pages: ResultSet = store.select('pages');
+        if(config?.output?.list?.order?.direction == 'desc') {
+            files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
+        }
+        else {
+            files = (pages.value as any[]).sort((a: any, b: any) => (a.result_key as string).localeCompare(b.result_key as string));
+        }
+    }
+    else {
+        if(config?.output?.list?.order?.direction != null) {
+            console.warn(yellow(`The [orderDirection] of ${ config?.output?.list?.order?.direction } is not null, yet the files are not contained in storage. Falling back to the default.`));
+        }
+        files = files.filter((e: string) => e.endsWith('.md'));
+    }
+    return files;
 };
 
 export const buildFileTree = (files: string[]): any => {

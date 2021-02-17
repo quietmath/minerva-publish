@@ -16,11 +16,9 @@ else {
     const data: string = fs.readFileSync(yargs.argv.f as string, 'utf-8');
     if(data != null) {
         console.info(blue(`Parsing file ${ yargs.argv.f }`));
-        console.log('Creating publishing engine.');
         const pub: Publisher = new Publisher(parseYAML(data));
-        console.log('Publishing files');
         pub.sanity()
-            .then(async (): Promise<void> => {
+            .then((): void => {
                 pub.clean();
                 pub.outline();
                 pub.toc();
@@ -30,7 +28,7 @@ else {
                 pub.list();
                 pub.view();
                 pub.static();
-                await pub.copy();
+                pub.copy();
             }).catch((err: any) => {
                 console.error(red(`Could not publish files: ${ err }`));
             });
