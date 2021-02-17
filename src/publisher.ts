@@ -288,7 +288,7 @@ export class Publisher {
                                     }
                                 });
                                 console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
-                                const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
+                                const template = hb.compile(data.toString('utf-8'), { });
                                 const pagingLinks = {
                                     nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
                                     prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
@@ -338,6 +338,7 @@ export class Publisher {
             const pagingTemplate: string = listConfig.pagingTemplate;
             const pagingFolder: string = listConfig.pagingFolder;
             const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
+            const skipPages: number = (listConfig.skip != null) ? listConfig.skip : 0;
             console.info(blue(`Current page size is ${ pageSize }`));
             const orderDirection = (listConfig.order != null && listConfig.order.direction) ? listConfig.order.direction : 'desc';
             const templates = listConfig.templates;
@@ -365,7 +366,9 @@ export class Publisher {
                 console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
                 fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
 
-                    let totalPages = Math.ceil(files.length / pageSize);
+                    const fileSlice = (tmpl == pagingTemplate) ? files.slice(skipPages) : files;
+
+                    let totalPages = Math.ceil(fileSlice.length / pageSize);
                     if(tmpl != pagingTemplate) {
                         totalPages = 1;
                     }
@@ -377,7 +380,7 @@ export class Publisher {
                             const tmplData = [];
                             const start = (num -1) * pageSize;
                             const end = start + pageSize;
-                            const currentFiles: string[] = files.slice(start, end);
+                            const currentFiles: string[] = fileSlice.slice(start, end);
                             currentFiles.forEach((file: string | any) => {
                                 try {
                                     let gray: any;
@@ -398,7 +401,7 @@ export class Publisher {
                                 }
                             });
                             console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
-                            const template = hb.compile('{{#> layout }}' + data.toString('utf-8') + '{{/layout}}', { });
+                            const template = hb.compile(data.toString('utf-8'), { });
                             const pagingLinks = {
                                 nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
                                 prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
@@ -495,7 +498,7 @@ export class Publisher {
                                     const md = data.toString('utf-8');
                                     const gray = matter(md);
                                     gray.data.content = c.makeHtml(gray.content);
-                                    const template = hb.compile('{{#> layout }}' + tmplData.toString('utf-8') + '{{/layout}}', { });
+                                    const template = hb.compile(tmplData.toString('utf-8'), { });
                                     const output = template({ ...this.config.globals, ...gray.data, _publisher: { files: this.files, store: this.store, config: this.config } });
                                     fs.writeFile(`${ outputFile }`, output, (e) => {
                                         if(e != null) {
@@ -528,7 +531,7 @@ export class Publisher {
                         const outputFile = `${ this.config.prefix }/${ this.config.dest }/${ fileName }`;
                         console.info(blue(`Current output file is ${ outputFile }`));
                         const html = tmplData.toString('utf-8');
-                        const template = hb.compile('{{#> layout }}' + html + '{{/layout}}', { });
+                        const template = hb.compile(html, { });
                         const output = template({ ...this.config.globals, ...{ content: html }, _publisher: { files: this.files, store: this.store, config: this.config } });
                         fs.writeFile(`${ outputFile }`, output, (e) => {
                             if(e != null) {

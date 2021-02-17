@@ -29,6 +29,7 @@ export interface ListConfig {
     pagingTemplate?: string;
     pagingFolder?: string;
     size?: number;
+    skip?: number;
     order?: OrderConfig;
     templates: string[];
 }
