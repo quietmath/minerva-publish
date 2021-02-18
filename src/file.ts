@@ -87,8 +87,14 @@ export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
                 const md: string = fs.readFileSync(f, { encoding: 'utf-8' });
                 const gray: any = matter(md);
                 gray['filePath'] = f;
-                const sortKey: string = gray.data[sortColumn];
-                if(sortKey === undefined) {
+                let sortKey: string = gray.data[sortColumn];
+                if(sortKey === undefined && f.indexOf('/') !== -1) {
+                    sortKey = f.split('/').pop();
+                    if(sortKey.indexOf('.') !== -1) {
+                        sortKey = sortKey.split('.').pop();
+                    }
+                }
+                else {
                     throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
                 }
                 let key: string | number | Date;
