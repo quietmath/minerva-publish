@@ -8,7 +8,7 @@ import { range } from '@quietmath/proto';
 import { JSONStore, ResultSet } from '@quietmath/moneta';
 import { PubConfig } from './schema';
 import { buildFileTree, getFiles, getFilesFromDisc, storeFiles } from './file';
-import { registerAllPartials, registerAllHelpers } from './handlebars';
+import { registerAllPartials, registerAllHelpers, registerExternalHelpers } from './handlebars';
 import { getOutputLink } from './structure';
 import { buildOutline, getTemplateData } from './helpers';
 
@@ -30,6 +30,10 @@ export class Publisher {
         console.info(blue(`Prefix is ${ this.config.prefix }`));
         registerAllPartials(hb, this.config);
         registerAllHelpers(hb);
+        if(this.config.helpers) {
+            console.log(this.config.helpers);
+            registerExternalHelpers(hb, this.config);
+        }
     }
     public async sanity(): Promise<void> {
         console.log('Performing sanity check.');

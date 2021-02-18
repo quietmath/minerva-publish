@@ -9,6 +9,7 @@ export interface PubConfig {
     layout: string;
     assets?: string[];
     output?: OutputConfig;
+    helpers?: string;
     globals?: any;
 }
 

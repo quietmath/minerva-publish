@@ -37,3 +37,17 @@ export const registerAllHelpers = (hb: any): void => {
     hb.registerHelper('formatRSSDate', formatRSSDate);
     hb.registerHelper('defaultOr', defaultOr);
 };
+
+export const registerExternalHelpers = (hb: any, config: PubConfig): void => {
+    console.log(config.helpers);
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const helpers = require(`${ config.prefix }/${ config.helpers }`);
+    console.log(helpers);
+    const keys = Object.keys(helpers);
+    console.log(keys);
+    for(let i = 0; i < keys.length; i++) {
+        console.log(keys[i]);
+        console.log(helpers[keys[i]]);
+        hb.registerHelper(keys[i], helpers[keys[i]]);
+    }
+};
