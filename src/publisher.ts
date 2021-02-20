@@ -101,28 +101,14 @@ export class Publisher {
         if(this.config?.output?.podcast?.rss) {
             const tmpl = this.config.output.podcast.rss.template;
             const maxItems = this.config.output.podcast.rss.maxItems;
-            const orderDirection = (this.config.output.list.order != null && this.config.output.list.order.direction) ? this.config.output.list.order.direction : 'desc';
             const categoryProperty = this.config.output.podcast.categoryProperty;
             const key = this.config.output.podcast.key;
             const podcastFolder: string = this.config.output.podcast.folder;
-            console.info(blue(`Current template string is ${ tmpl }`));
             const tmplNameParts = tmpl.replace('.hbs', '.xml').split('/');
-            console.info(blue(`Current template part replacement: ${ tmplNameParts }`));
             const tmplName = tmplNameParts.pop();
             console.info(blue(`Current template name is ${ tmplName }`));
             console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
-            let files: string[] | any[];
-            if(this.store != null) {
-                const pages: ResultSet = this.store.select('pages');
-                //Needs to account for ascending or decending...
-                files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
-            }
-            else {
-                if(orderDirection != null) {
-                    console.warn(yellow(`The [orderDirection] of ${ orderDirection } is not null, yet the files are not contained in storage. Falling back to the default.`));
-                }
-                files = this.files.filter((e: string) => e.endsWith('.md'));
-            }
+            const files: string[] | any[] = getFiles(this.store, this.config, this.files);
             fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
                 if(err != null) {
                     console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
@@ -130,28 +116,22 @@ export class Publisher {
                 else {
                     const tmplData = [];
                     files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string | any) => {
-                        try {
-                            let gray: any;
-                            if(typeof(file) === 'string') {
-                                console.info(blue(`Current file is ${ file }`));
-                                const md = fs.readFileSync(file, { encoding: 'utf-8' });
-                                gray = matter(md);
-                            }
-                            else {
-                                gray = file;
-                            }
-                            gray.data['link'] = getOutputLink(file, this.config);
-                            if(gray.data[categoryProperty] != null && gray.data[categoryProperty].toLowerCase().indexOf(key) !== -1) {
-                                tmplData.push(gray.data);
-                            }
-                        }
-                        catch(e) {
-                            console.info(red(`Unable to open file ${ this.config.prefix }/${ file }: ${ e }`));
+                        const d = getTemplateData(file, this.config);
+                        if(d != null && d[categoryProperty] != null && d[categoryProperty].toLowerCase().indexOf(key) !== -1) {
+                            tmplData.push(d);
                         }
                     });
                     console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
                     const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({ posts: tmplData, ...this.config.globals, _publisher: { files: this.files, store: this.store, config: this.config } });
+                    const output = template({
+                        posts: tmplData,
+                        ...this.config.globals,
+                        _publisher: {
+                            files: this.files,
+                            store: this.store,
+                            config: this.config
+                        }
+                    });
                     console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
                     if(podcastFolder) {
                         fs.ensureDirSync(`${ this.config.prefix }/${ this.config.dest }/${ podcastFolder }`);
