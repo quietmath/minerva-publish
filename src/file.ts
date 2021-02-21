@@ -137,3 +137,10 @@ export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
     store.commit();
     return store;
 };
+
+export const getWriteFileName = (config: PubConfig, fileName: string, folder: string): string => {
+    if(folder) {
+        fs.ensureDirSync(`${ config.prefix }/${ config.dest }/${ folder }`);
+    }
+    return (folder != null) ? `${ folder }/${ fileName }` : `${ fileName }`;
+};

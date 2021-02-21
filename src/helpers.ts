@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import * as matter from 'gray-matter';
+import { Converter } from 'showdown';
 import { s } from '@quietmath/proto';
 import { blue, red } from 'chalk';
 import { Publisher } from './publisher';
@@ -30,7 +31,20 @@ export const buildOutline = (pub: Publisher, arr: any): void => {
     });
 };
 
+export const getMarkdownConverter = (): Converter => {
+    return new Converter({
+        ghCompatibleHeaderId: true,
+        parseImgDimensions: true,
+        strikethrough: true,
+        tables: true,
+        ghCodeBlocks: true,
+        tasklists: true,
+        requireSpaceBeforeHeadingText: true
+    });
+};
+
 export const getTemplateData = (file: any | string, config: PubConfig): any => {
+    const c = getMarkdownConverter();
     try {
         let gray: any;
         if(typeof(file) === 'string') {
@@ -41,6 +55,7 @@ export const getTemplateData = (file: any | string, config: PubConfig): any => {
         else {
             gray = file;
         }
+        gray.data.content = c.makeHtml(gray.content);
         gray.data['link'] = getOutputLink(file, config);
         return gray.data;
     }
