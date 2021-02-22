@@ -1,14 +1,12 @@
 /* eslint-disable no-inner-declarations */
 import * as fs from 'fs-extra';
-import * as matter from 'gray-matter';
 import * as hb from 'handlebars';
-import { blue, red, yellow } from 'chalk';
+import { blue, red } from 'chalk';
 import { range } from '@quietmath/proto';
-import { JSONStore, ResultSet } from '@quietmath/moneta';
+import { JSONStore } from '@quietmath/moneta';
 import { PubConfig } from './schema';
 import { buildFileTree, getFiles, getFilesFromDisc, storeFiles, getWriteFileName } from './file';
 import { registerAllPartials, registerAllHelpers, registerExternalHelpers } from './handlebars';
-import { getOutputLink } from './structure';
 import { buildOutline, getTemplateData, getMarkdownConverter } from './helpers';
 
 /**
@@ -200,10 +198,17 @@ export class Publisher {
                                     }
                                 });
                                 console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
-                                const writeFileName: string = getWriteFileName(this.config, tmplName, pagingFolder);
-                                fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
-                                    .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
-                                    .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                                if(totalPages === 1) {
+                                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
+                                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
+                                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                                }
+                                else {
+                                    const writeFileName: string = getWriteFileName(this.config, num as any as string, pagingFolder);
+                                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
+                                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
+                                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                                }
                             }
                         });
                     });
@@ -271,7 +276,7 @@ export class Publisher {
                                     .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
                             }
                             else {
-                                const writeFileName: string = getWriteFileName(this.config, tmplName, pagingFolder);
+                                const writeFileName: string = getWriteFileName(this.config, num as any as string, pagingFolder);
                                 fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
                                     .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
                                     .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
@@ -310,13 +315,11 @@ export class Publisher {
         }
     }
     public view(): void {
-        const c = getMarkdownConverter();
         if(this.config?.output?.view) {
             const viewConfig = this.config.output.view;
             const templates = viewConfig.templates;
             console.info(blue(`Current templates are ${ templates }`));
-            //Need to get files from storage.
-            const files = this.files.filter((e: string): boolean => e.endsWith('.md'));
+            const files: any[] | string[] = getFiles(this.store, this.config, this.files);
             console.info(blue(`Current file length is ${ files.length }`));
             templates.forEach((tmpl: string) => {
                 console.info(blue(`Current template string is ${ tmpl }`));
@@ -325,39 +328,30 @@ export class Publisher {
                         console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
                     }
                     else {
-                        files.forEach(async (f): Promise<void> => {
-                            console.info(`Publishing file ${ f }`);
-                            const outputFile = `${ this.config.prefix }/${ this.config.dest }/${ f.replace(`${ this.config.prefix }/`,'')
+                        files.forEach(async (f: any | string): Promise<void> => {
+                            const fileName: string = (typeof(f) === 'string') ? f : f.filePath;
+                            console.info(`Publishing file ${ fileName }`);
+                            const outputFile = `${ this.config.prefix }/${ this.config.dest }/${ fileName.replace(`${ this.config.prefix }/`,'')
                                 .replace(`${ this.config.source }/`, '')
                                 .replace('.md','.html') }`;
                             console.info(blue(`Current output file is ${ outputFile }`));
                             const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
                             console.info(`Current output directory is ${ outputDir }`);
                             await fs.ensureDir(outputDir);
-                            fs.readFile(f, (err, data): void => {
-                                console.info(blue(`Current file is ${ f }`));
-                                if(err != null) {
-                                    console.info(red(`Error reading file: ${ err }`));
+                            const d = getTemplateData(f, this.config);
+                            const template = hb.compile(tmplData.toString('utf-8'), { });
+                            const output = template({
+                                ...this.config.globals,
+                                ...d,
+                                _publisher: {
+                                    files: this.files,
+                                    store: this.store,
+                                    config: this.config
                                 }
-                                else {
-                                    const md = data.toString('utf-8');
-                                    const gray = matter(md);
-                                    gray.data.content = c.makeHtml(gray.content);
-                                    const template = hb.compile(tmplData.toString('utf-8'), { });
-                                    const output = template({
-                                        ...this.config.globals,
-                                        ...gray.data,
-                                        _publisher: {
-                                            files: this.files,
-                                            store: this.store,
-                                            config: this.config
-                                        }
-                                    });
-                                    fs.writeFile(`${ outputFile }`, output, (e: any): void => {
-                                        if(e != null) {
-                                            console.info(red(`Failed to write file ${ e }`));
-                                        }
-                                    });
+                            });
+                            fs.writeFile(`${ outputFile }`, output, (e: any): void => {
+                                if(e != null) {
+                                    console.info(red(`Failed to write file ${ e }`));
                                 }
                             });
                         });

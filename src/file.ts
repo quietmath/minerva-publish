@@ -94,7 +94,7 @@ export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
                         sortKey = sortKey.split('.').pop();
                     }
                 }
-                else {
+                if(sortKey == null) {
                     throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
                 }
                 let key: string | number | Date;
