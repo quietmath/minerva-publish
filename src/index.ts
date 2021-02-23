@@ -22,13 +22,12 @@ else {
                 pub.clean();
                 pub.outline();
                 pub.toc();
-                pub.rss();
-                pub.podcast();
-                pub.podcastList();
-                pub.list();
-                pub.view();
-                pub.static();
-                pub.copy();
+                //pub.rss();
+                //pub.podcast();
+                pub.lists();
+                //pub.view();
+                //pub.static();
+                //pub.copy();
             }).catch((err: any) => {
                 console.error(red(`Could not publish files: ${ err }`));
             });

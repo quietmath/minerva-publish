@@ -1,4 +1,3 @@
-prefix: /home/szul/code/quietmath/codepunk.io
 source: content
 dest: public
 layout: templates/layout.hbs
@@ -8,30 +7,41 @@ output:
   includeFoldersInURL: false
   includeDateInURL: false
   includeExtension: false
-  list:
-    pagingTemplate: templates/paging.hbs
-    pagingFolder: page
-    size: 6
-    order:
-      orderBy: datePublished
-      direction: desc
-      type: date
-    templates: [templates/index.hbs, templates/posts.hbs, templates/paging.hbs]
+  lists:
+    - name: default
+      paging: templates/paging.hbs
+      folder: page
+      size: 6
+      skip: 6
+      order:
+        orderBy: datePublished
+        direction: desc
+        type: date
+      templates: [templates/index.hbs, templates/posts.hbs, templates/paging.hbs]
+    - name: podcast
+      paging: templates/paging.hbs
+      folder: podcast
+      property: tags
+      key: codepunk
+      size: 6
+      order:
+        orderBy: datePublished
+        direction: desc
+        type: date
+      templates: [templates/posts.hbs, templates/paging.hbs]
   view:
     templates: [templates/post.hbs]
   static:
     templates: [templates/about.hbs]
-  rss: 
+  feeds:
+    - name: default
     template: templates/rss.hbs
     maxItems: 50
-  podcast:
-    pagingTemplate: templates/paging.hbs
-    templates: [templates/posts.hbs, templates/paging.hbs]
-    rss:
-      template: templates/podcast/rss.hbs
-      maxItems: 50
+    - name: podcast
+    template: templates/podcast/rss.hbs
+    maxItems: 50
     folder: podcast
-    categoryProperty: tags
+    property: tags
     key: codepunk
 globals:
   absoluteUrl: https://codepunk.io

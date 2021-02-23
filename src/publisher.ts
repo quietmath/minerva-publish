@@ -2,12 +2,12 @@
 import * as fs from 'fs-extra';
 import * as hb from 'handlebars';
 import { blue, red } from 'chalk';
-import { range } from '@quietmath/proto';
 import { JSONStore } from '@quietmath/moneta';
 import { PubConfig } from './schema';
-import { buildFileTree, getFiles, getFilesFromDisc, storeFiles, getWriteFileName } from './file';
+import { buildFileTree, getFiles, getFilesFromDisc, storeFiles } from './file';
 import { registerAllPartials, registerAllHelpers, registerExternalHelpers } from './handlebars';
 import { buildOutline, getTemplateData, getMarkdownConverter } from './helpers';
+import { createListFiles } from './list';
 
 /**
  * @module quietmath/minerva-publish
@@ -36,7 +36,7 @@ export class Publisher {
         console.log('Performing sanity check.');
         if(this.tree == null) {
             this.files = await getFilesFromDisc(this.config);
-            this.store = storeFiles(this.files, this.config);
+            this.store = storeFiles(this.files, this.config?.output?.lists);
             this.tree = buildFileTree(this.files);
         }
     }
@@ -54,6 +54,7 @@ export class Publisher {
                 .catch((err) => console.info(red(`Error writing summary file: ${ err }`)));
         }
     }
+    /*
     public rss(): void {
         if(this.config?.output?.rss) {
             const tmpl = this.config.output.rss.template;
@@ -94,6 +95,8 @@ export class Publisher {
             });
         }
     }
+    */
+    /*
     public podcast(): void {
         if(this.config?.output?.podcast?.rss) {
             const tmpl = this.config.output.podcast.rss.template;
@@ -138,153 +141,12 @@ export class Publisher {
             });
         }
     }
-    public podcastList(): void {
-        if(this.config?.output?.podcast && this.config?.output?.podcast?.folder) {
-            if(this.config?.output?.list) {
-                const listConfig = this.config.output.list;
-                const pagingTemplate: string = this.config.output.podcast.pagingTemplate;
-                const pagingFolder: string = this.config.output.podcast.folder;
-                const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
-                console.info(blue(`Current page size is ${ pageSize }`));
-                const templates = this.config.output.podcast.templates;
-                const categoryProperty = this.config.output.podcast.categoryProperty;
-                const key = this.config.output.podcast.key;
-                console.info(blue(`Current list templates are ${ templates }`));
-                let files: string[] | any[] = getFiles(this.store, this.config, this.files);
-                if(files.length > 0 && typeof(files[0]) !== 'string') {
-                    files = files.filter((e: any) => e.data[categoryProperty] != null && e.data[categoryProperty].toLowerCase().indexOf(key) !== -1);
-                }
-                console.info(blue(`Current number of markdown files are ${ files.length }`));
-                templates.forEach((tmpl: string) => {
-                    const tmplNameParts = tmpl.replace('.hbs', '.html').split('/');
-                    const tmplName = tmplNameParts.pop();
-                    console.info(blue(`Current template name is ${ tmplName }`));
-                    console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
-                    fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
-                        let totalPages = Math.ceil(files.length / pageSize);
-                        if(tmpl != pagingTemplate) {
-                            totalPages = 1;
-                        }
-                        range(totalPages).forEach((num: number) => {
-                            if(err != null) {
-                                console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
-                            }
-                            else {
-                                const tmplData = [];
-                                const start = (num -1) * pageSize;
-                                const end = start + pageSize;
-                                const currentFiles: string[] = files.slice(start, end);
-                                currentFiles.forEach((file: string | any) => {
-                                    const d = getTemplateData(file, this.config);
-                                    if(d[categoryProperty] != null && d[categoryProperty].toLowerCase().indexOf(key) !== -1) {
-                                        tmplData.push(d);
-                                    }
-                                });
-                                console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
-                                const template = hb.compile(data.toString('utf-8'), { });
-                                const pagingLinks = {
-                                    nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
-                                    prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
-                                    pagingFolder: pagingFolder
-                                };
-                                const output = template({
-                                    posts: tmplData,
-                                    ...pagingLinks,
-                                    ...this.config.globals,
-                                    _publisher: {
-                                        files: this.files,
-                                        store: this.store,
-                                        config: this.config
-                                    }
-                                });
-                                console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
-                                if(totalPages === 1) {
-                                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
-                                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
-                                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
-                                }
-                                else {
-                                    const writeFileName: string = getWriteFileName(this.config, `${ num }.html`, pagingFolder);
-                                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
-                                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
-                                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
-                                }
-                            }
-                        });
-                    });
-                });
+    */
+    public lists(): void {
+        if(this.config?.output?.lists) {
+            for(let i = 0; i < this.config.output.lists.length; i++) {
+                createListFiles(i, this.config, this.store, this.files, hb);
             }
-        }
-    }
-    public list(): void {
-        if(this.config?.output?.list) {
-            const listConfig = this.config.output.list;
-            const pagingTemplate: string = listConfig.pagingTemplate;
-            const pagingFolder: string = listConfig.pagingFolder;
-            const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
-            const skipPages: number = (listConfig.skip != null) ? listConfig.skip : 0;
-            console.info(blue(`Current page size is ${ pageSize }`));
-            const templates = listConfig.templates;
-            console.info(blue(`Current list templates are ${ templates }`));
-            const files: string[] | any[] = getFiles(this.store, this.config, this.files);    
-            console.info(blue(`Current number of markdown files are ${ files.length }`));
-            templates.forEach((tmpl: string) => {
-                const tmplNameParts = tmpl.replace('.hbs', '.html').split('/');
-                const tmplName = tmplNameParts.pop();
-                console.info(blue(`Current template name is ${ tmplName }`));
-                console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
-                fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
-                    const fileSlice = (tmpl == pagingTemplate) ? files.slice(skipPages) : files;
-                    let totalPages = Math.ceil(fileSlice.length / pageSize);
-                    if(tmpl != pagingTemplate) {
-                        totalPages = 1;
-                    }
-                    range(totalPages).forEach((num: number) => {
-                        if(err != null) {
-                            console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
-                        }
-                        else {
-                            const tmplData = [];
-                            const start = (num -1) * pageSize;
-                            const end = start + pageSize;
-                            const currentFiles: string[] = fileSlice.slice(start, end);
-                            currentFiles.forEach((file: string | any) => {
-                                const d = getTemplateData(file, this.config);
-                                tmplData.push(d);
-                            });
-                            console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
-                            const template = hb.compile(data.toString('utf-8'), { });
-                            const pagingLinks = {
-                                nextPage: ((num + 1 == totalPages) ? undefined : num + 1),
-                                prevPage: ((num - 1 == 0) ? undefined : (num - 1)),
-                                pagingFolder: pagingFolder
-                            };
-                            const output = template({
-                                posts: tmplData,
-                                ...pagingLinks,
-                                _publisher: {
-                                    files: this.files,
-                                    store: this.store,
-                                    config:
-                                    this.config
-                                }
-                            });
-                            console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
-                            if(totalPages === 1) {
-                                fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
-                                    .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
-                                    .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
-                            }
-                            else {
-                                const writeFileName: string = getWriteFileName(this.config, `${ num }.html`, pagingFolder);
-                                fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
-                                    .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
-                                    .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
-                            }
-                        }
-                    });
-                });
-            });
         }
     }
     public toc(): void {
@@ -319,7 +181,7 @@ export class Publisher {
             const viewConfig = this.config.output.view;
             const templates = viewConfig.templates;
             console.info(blue(`Current templates are ${ templates }`));
-            const files: any[] | string[] = getFiles(this.store, this.config, this.files);
+            const files: any[] | string[] = getFiles(this.store, this.config?.output?.view, this.files);
             console.info(blue(`Current file length is ${ files.length }`));
             templates.forEach((tmpl: string) => {
                 console.info(blue(`Current template string is ${ tmpl }`));

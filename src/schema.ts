@@ -7,32 +7,34 @@ export interface PubConfig {
     source: string;
     dest: string;
     layout: string;
-    assets?: string[];
-    output?: OutputConfig;
-    helpers?: string;
-    globals?: any;
+    assets: string[];
+    output: OutputConfig;
+    helpers: string;
+    globals: any;
 }
 
 export interface OutputConfig {
-    outline?: boolean;
-    includeFoldersInURL?: boolean;
-    includeDateInURL?: boolean;
-    includeExtension?: boolean;
-    categoryProperty?: string;
-    list?: ListConfig;
-    view?: ViewConfig;
-    static?: StaticConfig;
-    rss?: RSSConfig;
-    podcast?: PodcastConfig;
+    outline: boolean;
+    includeFoldersInURL: boolean;
+    includeDateInURL: boolean;
+    includeExtension: boolean;
+    categoryProperty: string;
+    lists: ListConfig[];
+    view: ViewConfig;
+    static: StaticConfig;
+    feeds: RSSConfig[];
 }
 
 export interface ListConfig {
-    pagingTemplate?: string;
-    pagingFolder?: string;
-    size?: number;
-    skip?: number;
-    order?: OrderConfig;
+    name: string;
+    paging: string;
+    folder: string;
+    size: number;
+    skip: number;
+    order: OrderConfig;
     templates: string[];
+    property: string;
+    key: string;
 }
 
 export interface ViewConfig {
@@ -50,15 +52,10 @@ export interface OrderConfig {
 }
 
 export interface RSSConfig {
+    name: string;
     template: string;
-    maxItems?: number;
-}
-
-export interface PodcastConfig {
-    pagingTemplate: string;
-    templates: string[];
-    rss?: RSSConfig;
-    folder?: string;
-    categoryProperty: string;
+    maxItems: number;
+    folder: string;
+    property: string;
     key: string;
 }

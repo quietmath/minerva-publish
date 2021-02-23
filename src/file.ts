@@ -4,7 +4,7 @@ import * as matter from 'gray-matter';
 import * as moment from 'moment';
 import { red, yellow } from 'chalk';
 import { JSONStore, ResultSet } from '@quietmath/moneta';
-import { PubConfig } from './schema';
+import { ListConfig, PubConfig, ViewConfig } from './schema';
 
 /**
  * @module quietmath/minerva-publish
@@ -53,10 +53,10 @@ export const getFilesFromDisc = (config: PubConfig): Promise<string[]> => {
     
 };
 
-export const getFiles = (store: JSONStore, config: PubConfig, files: string[]): any[] | string[] => {
+export const getFiles = (store: JSONStore, config: ListConfig | ViewConfig, files: string[]): any[] | string[] => {
     if(store != null) {
         const pages: ResultSet = store.select('pages');
-        if(config?.output?.list?.order?.direction == 'desc') {
+        if((config as ListConfig)?.order?.direction == 'desc') {
             files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
         }
         else {
@@ -64,8 +64,8 @@ export const getFiles = (store: JSONStore, config: PubConfig, files: string[]): 
         }
     }
     else {
-        if(config?.output?.list?.order?.direction != null) {
-            console.warn(yellow(`The [orderDirection] of ${ config?.output?.list?.order?.direction } is not null, yet the files are not contained in storage. Falling back to the default.`));
+        if((config as ListConfig)?.order?.direction != null) {
+            console.warn(yellow(`The [orderDirection] of ${ (config as ListConfig)?.order?.direction } is not null, yet the files are not contained in storage. Falling back to the default.`));
         }
         files = files.filter((e: string) => e.endsWith('.md'));
     }
@@ -76,11 +76,12 @@ export const buildFileTree = (files: string[]): any => {
     return buildTree(files);
 };
 
-export const storeFiles = (files: string[], config: PubConfig): JSONStore => {
+export const storeFiles = (files: string[], configs: ListConfig[]): JSONStore => {
+    const config = (configs.length > 0) ? configs[0] : null;
     const store: JSONStore = new JSONStore('minerva.json');
     store.create('pages');
-    const sortColumn: string = config?.output?.list?.order?.orderBy;
-    const keyType: string = config?.output?.list?.order?.type;
+    const sortColumn: string = config?.order?.orderBy;
+    const keyType: string = config?.order?.type;
     files.forEach((f: string): void => {
         try {
             if(fs.statSync(f).isFile() && f.endsWith('.md')) {
