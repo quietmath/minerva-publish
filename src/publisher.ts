@@ -204,7 +204,7 @@ export class Publisher {
                                         .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
                                 }
                                 else {
-                                    const writeFileName: string = getWriteFileName(this.config, num as any as string, pagingFolder);
+                                    const writeFileName: string = getWriteFileName(this.config, `${ num }.html`, pagingFolder);
                                     fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
                                         .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
                                         .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
@@ -276,7 +276,7 @@ export class Publisher {
                                     .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
                             }
                             else {
-                                const writeFileName: string = getWriteFileName(this.config, num as any as string, pagingFolder);
+                                const writeFileName: string = getWriteFileName(this.config, `${ num }.html`, pagingFolder);
                                 fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
                                     .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
                                     .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
