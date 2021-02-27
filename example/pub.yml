@@ -35,13 +35,21 @@ output:
     templates: [templates/about.hbs]
   feeds:
     - name: default
-    template: templates/rss.hbs
-    maxItems: 50
+      template: templates/rss.hbs
+      maxItems: 50
+      order:
+        orderBy: datePublished
+        direction: desc
+        type: date
     - name: podcast
-    template: templates/podcast/rss.hbs
-    maxItems: 50
-    folder: podcast
-    property: tags
-    key: codepunk
+      template: templates/podcast/rss.hbs
+      maxItems: 50
+      folder: podcast
+      property: tags
+      key: codepunk
+      order:
+        orderBy: datePublished
+        direction: desc
+        type: date
 globals:
   absoluteUrl: https://codepunk.io

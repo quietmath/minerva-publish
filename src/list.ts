@@ -9,7 +9,7 @@ import { PubConfig, ListConfig } from './schema';
 export const createListFiles = (pos: number, config: PubConfig, store: JSONStore, filePaths: string[], hb: any): void => {
     const listConfig: ListConfig = config.output.lists[pos];
     const pagingTemplate: string = listConfig.paging;
-    const pagingFolder: string = listConfig.paging;
+    const pagingFolder: string = listConfig.folder;
     const pageSize: number = (listConfig.size != null) ? listConfig.size : 10;
     const skipPages: number = (listConfig.skip != null) ? listConfig.skip : 0;
     const categoryProperty = listConfig.property;

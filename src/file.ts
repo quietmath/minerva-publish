@@ -4,7 +4,7 @@ import * as matter from 'gray-matter';
 import * as moment from 'moment';
 import { red, yellow } from 'chalk';
 import { JSONStore, ResultSet } from '@quietmath/moneta';
-import { ListConfig, PubConfig, ViewConfig } from './schema';
+import { ListConfig, PubConfig, RSSConfig, ViewConfig } from './schema';
 
 /**
  * @module quietmath/minerva-publish
@@ -53,7 +53,7 @@ export const getFilesFromDisc = (config: PubConfig): Promise<string[]> => {
     
 };
 
-export const getFiles = (store: JSONStore, config: ListConfig | ViewConfig, files: string[]): any[] | string[] => {
+export const getFiles = (store: JSONStore, config: ListConfig | ViewConfig | RSSConfig, files: string[]): any[] | string[] => {
     if(store != null) {
         const pages: ResultSet = store.select('pages');
         if((config as ListConfig)?.order?.direction == 'desc') {
@@ -87,48 +87,50 @@ export const storeFiles = (files: string[], configs: ListConfig[]): JSONStore =>
             if(fs.statSync(f).isFile() && f.endsWith('.md')) {
                 const md: string = fs.readFileSync(f, { encoding: 'utf-8' });
                 const gray: any = matter(md);
-                gray['filePath'] = f;
-                let sortKey: string = gray.data[sortColumn];
-                if(sortKey === undefined && f.indexOf('/') !== -1) {
-                    sortKey = f.split('/').pop();
-                    if(sortKey.indexOf('.') !== -1) {
-                        sortKey = sortKey.split('.').pop();
+                if(!gray.draft) {
+                    gray['filePath'] = f;
+                    let sortKey: string = gray.data[sortColumn];
+                    if(sortKey === undefined && f.indexOf('/') !== -1) {
+                        sortKey = f.split('/').pop();
+                        if(sortKey.indexOf('.') !== -1) {
+                            sortKey = sortKey.split('.').pop();
+                        }
                     }
+                    if(sortKey == null) {
+                        throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
+                    }
+                    let key: string | number | Date;
+                    switch(keyType) {
+                        case 'string':
+                            break;
+                        case 'number':
+                            try {
+                                key = parseInt(sortKey);
+                            }
+                            catch(e: any) {
+                                throw new Error(`The key ${ sortKey } is not a number. ${ e }`);
+                            }
+                            break;
+                        case 'date':
+                            try {
+                                const sortDate = moment(sortKey);
+                                key = sortDate.format();
+                            }
+                            catch(e: any) {
+                                throw new Error(`The key ${ sortKey } is not a date. ${ e }`);
+                            }
+                            break;
+                        default:
+                            try {
+                                key = f.split('/').pop();
+                            }
+                            catch(e: any) {
+                                throw new Error(`Failed to retrieve file name. ${ e }`);
+                            }
+                            break;
+                    }
+                    store.insert('pages', key as string, gray);
                 }
-                if(sortKey == null) {
-                    throw new Error(`Failed to find key ${ keyType } in file ${ f }.`);
-                }
-                let key: string | number | Date;
-                switch(keyType) {
-                    case 'string':
-                        break;
-                    case 'number':
-                        try {
-                            key = parseInt(sortKey);
-                        }
-                        catch(e: any) {
-                            throw new Error(`The key ${ sortKey } is not a number. ${ e }`);
-                        }
-                        break;
-                    case 'date':
-                        try {
-                            const sortDate = moment(sortKey);
-                            key = sortDate.format();
-                        }
-                        catch(e: any) {
-                            throw new Error(`The key ${ sortKey } is not a date. ${ e }`);
-                        }
-                        break;
-                    default:
-                        try {
-                            key = f.split('/').pop();
-                        }
-                        catch(e: any) {
-                            throw new Error(`Failed to retrieve file name. ${ e }`);
-                        }
-                        break;
-                }
-                store.insert('pages', key as string, gray);
             }
         }
         catch(e: any) {

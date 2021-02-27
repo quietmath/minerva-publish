@@ -8,6 +8,7 @@ import { buildFileTree, getFiles, getFilesFromDisc, storeFiles } from './file';
 import { registerAllPartials, registerAllHelpers, registerExternalHelpers } from './handlebars';
 import { buildOutline, getTemplateData, getMarkdownConverter } from './helpers';
 import { createListFiles } from './list';
+import { createFeeds } from './feed';
 
 /**
  * @module quietmath/minerva-publish
@@ -54,94 +55,13 @@ export class Publisher {
                 .catch((err) => console.info(red(`Error writing summary file: ${ err }`)));
         }
     }
-    /*
-    public rss(): void {
-        if(this.config?.output?.rss) {
-            const tmpl = this.config.output.rss.template;
-            const maxItems = this.config.output.rss.maxItems;
-            const tmplNameParts = tmpl.replace('.hbs', '.xml').split('/');
-            const tmplName = tmplNameParts.pop();
-            console.info(blue(`Current template name is ${ tmplName }`));
-            console.info(blue(`Current template to read is ${ this.config.prefix }/${ tmpl }`));
-            const files: string[] | any[] = getFiles(this.store, this.config, this.files);
-            fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
-                if(err != null) {
-                    console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
-                }
-                else {
-                    const tmplData = [];
-                    files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string | any) => {
-                        const d = getTemplateData(file, this.config);
-                        if(d != null) {
-                            tmplData.push(d);
-                        }
-                    });
-                    console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
-                    const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({
-                        posts: tmplData,
-                        ...this.config.globals,
-                        _publisher: {
-                            files: this.files,
-                            store: this.store,
-                            config: this.config
-                        }
-                    });
-                    console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
-                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
-                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ tmplName }` }`))
-                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
-                }
-            });
+    public feeds(): void {
+        if(this.config?.output?.feeds) {
+            for(let i = 0; i < this.config.output.feeds.length; i++) {
+                createFeeds(i, this.config, this.store, this.files, hb);
+            }
         }
     }
-    */
-    /*
-    public podcast(): void {
-        if(this.config?.output?.podcast?.rss) {
-            const tmpl = this.config.output.podcast.rss.template;
-            const maxItems = this.config.output.podcast.rss.maxItems;
-            const categoryProperty = this.config.output.podcast.categoryProperty;
-            const key = this.config.output.podcast.key;
-            const podcastFolder: string = this.config.output.podcast.folder;
-            const tmplNameParts = tmpl.replace('.hbs', '.xml').split('/');
-            const tmplName = tmplNameParts.pop();
-            console.info(blue(`Current template name is ${ tmplName }`));
-            console.info(blue(`Current file to read is ${ this.config.prefix }/${ tmpl }`));
-            const files: string[] | any[] = getFiles(this.store, this.config, this.files);
-            fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
-                if(err != null) {
-                    console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
-                }
-                else {
-                    const tmplData = [];
-                    files.slice(0, (maxItems !== undefined) ? maxItems : undefined).forEach((file: string | any) => {
-                        const d = getTemplateData(file, this.config);
-                        if(d != null && d[categoryProperty] != null && d[categoryProperty].toLowerCase().indexOf(key) !== -1) {
-                            tmplData.push(d);
-                        }
-                    });
-                    console.info(blue(`Current handlebar layout is ${ this.config.prefix }/${ this.config.layout }`));
-                    const template = hb.compile(data.toString('utf-8'), { });
-                    const output = template({
-                        posts: tmplData,
-                        ...this.config.globals,
-                        _publisher: {
-                            files: this.files,
-                            store: this.store,
-                            config: this.config
-                        }
-                    });
-                    console.info(blue(`Writing to file ${ this.config.prefix }/${ this.config.dest }/${ tmplName }`));
-                    const writeFileName: string = getWriteFileName(this.config, tmplName, podcastFolder);
-                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
-                        .then(() => console.log(`Wrote partial to ${ `${ this.config.prefix }/${ this.config.dest }/${ writeFileName }` }`))
-                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
-                }
-            });
-        }
-    }
-    */
     public lists(): void {
         if(this.config?.output?.lists) {
             for(let i = 0; i < this.config.output.lists.length; i++) {
