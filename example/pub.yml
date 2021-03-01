@@ -8,6 +8,13 @@ output:
   includeDateInURL: false
   includeExtension: false
   lists:
+    - name: index
+      size: 6
+      order:
+        orderBy: datePublished
+        direction: desc
+        type: date
+      templates: [templates/index.hbs]
     - name: default
       paging: templates/paging.hbs
       folder: page
@@ -17,7 +24,7 @@ output:
         orderBy: datePublished
         direction: desc
         type: date
-      templates: [templates/index.hbs, templates/posts.hbs, templates/paging.hbs]
+      templates: [templates/posts.hbs, templates/paging.hbs]
     - name: podcast
       paging: templates/paging.hbs
       folder: podcast

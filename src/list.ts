@@ -25,7 +25,10 @@ export const createListFiles = (pos: number, config: PubConfig, store: JSONStore
         console.info(blue(`Current template name is ${ tmplName }`));
         console.info(blue(`Current file to read is ${ config.prefix }/${ tmpl }`));
         fs.readFile(`${ config.prefix }/${ tmpl }`, (err: Error, data: Buffer) => {
-            const fileSlice = (tmpl == pagingTemplate) ? files.slice(skipPages) : files;
+            let fileSlice = files.slice(skipPages);
+            if(categoryProperty != null) {
+                fileSlice = fileSlice.filter((e: any) => e.data[categoryProperty] != null && e.data[categoryProperty].toLowerCase().indexOf(key) !== -1);
+            }
             let totalPages = Math.ceil(fileSlice.length / pageSize);
             if(tmpl != pagingTemplate) {
                 totalPages = 1;
@@ -41,12 +44,7 @@ export const createListFiles = (pos: number, config: PubConfig, store: JSONStore
                     const currentFiles: string[] = fileSlice.slice(start, end);
                     currentFiles.forEach((file: string | any) => {
                         const d = getTemplateData(file, config);
-                        if(categoryProperty == null) {
-                            tmplData.push(d);
-                        }
-                        else if(d[categoryProperty] != null && d[categoryProperty].toLowerCase().indexOf(key) !== -1) {
-                            tmplData.push(d);
-                        }
+                        tmplData.push(d);
                     });
                     console.info(blue(`Current handlebar layout is ${ config.prefix }/${ config.layout }`));
                     const template = hb.compile(data.toString('utf-8'), { });
@@ -66,17 +64,16 @@ export const createListFiles = (pos: number, config: PubConfig, store: JSONStore
                         }
                     });
                     console.info(blue(`Writing to file ${ config.prefix }/${ config.dest }/${ tmplName }`));
+                    let writeFileName: string;
                     if(totalPages === 1) {
-                        fs.writeFile(`${ config.prefix }/${ config.dest }/${ tmplName }`, output, { encoding:'utf-8' })
-                            .then(() => console.log(`Wrote partial to ${ `${ config.prefix }/${ config.dest }/${ tmplName }` }`))
-                            .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                        writeFileName = getWriteFileName(config, tmplName, pagingFolder);
                     }
                     else {
-                        const writeFileName: string = getWriteFileName(config, `${ num }.html`, pagingFolder);
-                        fs.writeFile(`${ config.prefix }/${ config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
-                            .then(() => console.log(`Wrote partial to ${ `${ config.prefix }/${ config.dest }/${ writeFileName }` }`))
-                            .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
+                        writeFileName = getWriteFileName(config, `${ num }.html`, pagingFolder);
                     }
+                    fs.writeFile(`${ config.prefix }/${ config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
+                        .then(() => console.log(`Wrote partial to ${ `${ config.prefix }/${ config.dest }/${ writeFileName }` }`))
+                        .catch((err) => console.info(red(`Error writing partial: ${ err }`)));
                 }
             });
         });
