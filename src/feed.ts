@@ -13,10 +13,8 @@ export const createFeeds = (pos: number, config: PubConfig, store: JSONStore, fi
     const categoryProperty: string = feedConfig.property;
     const key: string = feedConfig.key;
     const files: string[] | any[] = getFiles(store, feedConfig, filePaths);
-
     const tmplNameParts: string[] = tmpl.replace('.hbs', '.xml').split('/');
     const tmplName: string = tmplNameParts.pop();    
-    
     fs.readFile(`${ config.prefix }/${ tmpl }`, (err: Error, data: Buffer): void => {
         if(err != null) {
             console.info(red(`Unable to open file ${ config.prefix }/${ tmpl }: ${ err }`));

@@ -6,7 +6,7 @@ import { getFiles, getWriteFileName } from './file';
 import { getTemplateData } from './helpers';
 import { PubConfig, ListConfig } from './schema';
 
-export const createListFiles = (pos: number, config: PubConfig, store: JSONStore, filePaths: string[], hb: any): void => {
+export const createLists = (pos: number, config: PubConfig, store: JSONStore, filePaths: string[], hb: any): void => {
     const listConfig: ListConfig = config.output.lists[pos];
     const pagingTemplate: string = listConfig.paging;
     const pagingFolder: string = listConfig.folder;
@@ -15,12 +15,10 @@ export const createListFiles = (pos: number, config: PubConfig, store: JSONStore
     const categoryProperty: string = listConfig.property;
     const key: string = listConfig.key;
     const templates: string[] = listConfig.templates;
-    const files: string[] | any[] = getFiles(store, listConfig, filePaths);    
-    
+    const files: string[] | any[] = getFiles(store, listConfig, filePaths);
     templates.forEach((tmpl: string): void => {
         const tmplNameParts: string[] = tmpl.replace('.hbs', '.html').split('/');
         const tmplName: string = tmplNameParts.pop();
-
         fs.readFile(`${ config.prefix }/${ tmpl }`, (err: Error, data: Buffer): void => {
             let fileSlice: string[] | any[] = files.slice(skipPages);
             if(categoryProperty != null) {
@@ -39,7 +37,6 @@ export const createListFiles = (pos: number, config: PubConfig, store: JSONStore
                     const start: number = (num -1) * pageSize;
                     const end: number = start + pageSize;
                     const currentFiles: string[] = fileSlice.slice(start, end);
-                    
                     currentFiles.forEach((file: string | any): void => {
                         const d: any = getTemplateData(file, config);
                         tmplData.push(d);
@@ -61,9 +58,6 @@ export const createListFiles = (pos: number, config: PubConfig, store: JSONStore
                             config
                         }
                     });
-
-                    console.info(blue(`Writing to file ${ config.prefix }/${ config.dest }/${ tmplName }`));
-
                     let writeFileName: string;
                     if(totalPages === 1) {
                         writeFileName = getWriteFileName(config, tmplName, pagingFolder);
@@ -71,6 +65,7 @@ export const createListFiles = (pos: number, config: PubConfig, store: JSONStore
                     else {
                         writeFileName = getWriteFileName(config, `${ num }.html`, pagingFolder);
                     }
+                    console.info(blue(`Writing to file ${ config.prefix }/${ config.dest }/${ writeFileName }`));
                     fs.writeFile(`${ config.prefix }/${ config.dest }/${ writeFileName }`, output, { encoding:'utf-8' })
                         .then((): void => console.log(`Wrote partial to ${ `${ config.prefix }/${ config.dest }/${ writeFileName }` }`))
                         .catch((err: any): void => console.info(red(`Error writing partial: ${ err }`)));

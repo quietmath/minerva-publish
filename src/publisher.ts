@@ -3,22 +3,24 @@ import * as fs from 'fs-extra';
 import * as hb from 'handlebars';
 import { blue, red } from 'chalk';
 import { JSONStore } from '@quietmath/moneta';
-import { PubConfig, StaticConfig, ViewConfig } from './schema';
-import { buildFileTree, getFiles, getFilesFromDisc, storeFiles } from './file';
+import { PubConfig } from './schema';
+import { buildFileTree, getFilesFromDisc, storeFiles } from './file';
 import { registerAllPartials, registerAllHelpers, registerExternalHelpers } from './handlebars';
-import { buildOutline, getTemplateData, getMarkdownConverter } from './helpers';
-import { createListFiles } from './list';
+import { createLists } from './list';
 import { createFeeds } from './feed';
-import { Converter } from 'showdown';
+import { createOutline } from './outline';
+import { createTOC } from './toc';
+import { createViews } from './view';
+import { createStaticFiles } from './static';
 
 /**
  * @module quietmath/minerva-publish
  */
 
 export class Publisher {
-    public files: string[];
     private store: JSONStore;
-    private tree: any;
+    public files: string[];
+    public tree: any;
     public summary: string;
     public config: PubConfig;
     constructor(config: PubConfig) {
@@ -46,12 +48,7 @@ export class Publisher {
     }
     public outline(): void {
         if(this.config?.output?.outline) {
-            this.summary = '# Summary\n\n';
-            const startKey: string = Object.keys(this.tree[0]).find((e: string) => e === this.config.source);
-            buildOutline(this, this.tree[0][startKey]);
-            fs.writeFile(`${ this.config.prefix }/${ this.config.source }/SUMMARY.md`, this.summary, { encoding:'utf-8' })
-                .then((): void => console.log(`Wrote summary file to ${ `${ this.config.prefix }/${ this.config.source }/SUMMARY.md` }`))
-                .catch((err: any): void => console.info(red(`Error writing summary file: ${ err }`)));
+            createOutline(this);
         }
     }
     public feeds(): void {
@@ -64,112 +61,24 @@ export class Publisher {
     public lists(): void {
         if(this.config?.output?.lists) {
             for(let i = 0; i < this.config.output.lists.length; i++) {
-                createListFiles(i, this.config, this.store, this.files, hb);
+                createLists(i, this.config, this.store, this.files, hb);
             }
         }
     }
     public toc(): void {
         const outline: boolean = this.config?.output?.outline;
         if(outline) {
-            fs.readFile(`${ this.config.prefix }/${ this.config.source }/SUMMARY.md`, (err: Error, data: Buffer): void => {
-                if(err != null) {
-                    console.info(red(`Unable to open file ${ this.config.prefix }/${ this.config.source }/SUMMARY.md: ${ err }`));
-                }
-                else {
-                    let md: string = data.toString('utf-8');
-                    md = md.replace(/\.md/ig, '.html');
-                    const c: Converter = getMarkdownConverter();
-                    const html: string = c.makeHtml(md);
-                    const template: any = hb.compile(html);
-                    const output: string = template({
-                        _publisher: {
-                            files: this.files,
-                            store: this.store,
-                            config: this.config
-                        }
-                    });
-                    fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/TOC.html`, output, { encoding:'utf-8' })
-                        .then((): void => console.log(`Wrote TOC file to ${ `${ this.config.prefix }/${ this.config.dest }/TOC.html` }`))
-                        .catch((err: any): void => console.info(red(`Error writing TOC: ${ err }`)));
-                }
-            });
+            createTOC(this.config, this.files, this.store, hb);
         }
     }
     public view(): void {
         if(this.config?.output?.view) {
-            const viewConfig: ViewConfig = this.config.output.view;
-            const templates: string[] = viewConfig.templates;
-            const files: any[] | string[] = getFiles(this.store, this.config?.output?.view, this.files);
-            
-            templates.forEach((tmpl: string): void => {
-                fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, tmplData: Buffer): void => {
-                    if(err != null) {
-                        console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
-                    }
-                    else {
-                        files.forEach(async (f: any | string): Promise<void> => {
-                            const fileName: string = (typeof(f) === 'string') ? f : f.filePath;
-                            console.info(`Publishing file ${ fileName }`);
-                            const outputFile = `${ this.config.prefix }/${ this.config.dest }/${ fileName.replace(`${ this.config.prefix }/`,'')
-                                .replace(`${ this.config.source }/`, '')
-                                .replace('.md','.html') }`;
-                            console.info(blue(`Current output file is ${ outputFile }`));
-                            const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
-                            await fs.ensureDir(outputDir);
-                            const d: any = getTemplateData(f, this.config);
-                            const template: any = hb.compile(tmplData.toString('utf-8'), { });
-                            const output: string = template({
-                                ...this.config.globals,
-                                ...d,
-                                _publisher: {
-                                    files: this.files,
-                                    store: this.store,
-                                    config: this.config
-                                }
-                            });
-                            fs.writeFile(`${ outputFile }`, output, (e: any): void => {
-                                if(e != null) {
-                                    console.info(red(`Failed to write file ${ e }`));
-                                }
-                            });
-                        });
-                    }
-                });
-            });
+            createViews(this.config, this.store, this.files, hb);
         }
     }
     public static(): void {
-        const staticConfig: StaticConfig = this.config?.output?.static;
-        if(staticConfig) {
-            const templates: string[] = staticConfig.templates;
-            templates.forEach((tmpl: string): void => {
-                fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, tmplData: Buffer): void => {
-                    const fileName: string = tmpl.split('/').reverse()[0].replace('.hbs', '.html');
-                    if(err != null) {
-                        console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
-                    }
-                    else {
-                        const outputFile = `${ this.config.prefix }/${ this.config.dest }/${ fileName }`;
-                        console.info(blue(`Current output file is ${ outputFile }`));
-                        const html: string = tmplData.toString('utf-8');
-                        const template: any = hb.compile(html, { });
-                        const output: string = template({
-                            ...this.config.globals,
-                            ...{ content: html },
-                            _publisher: {
-                                files: this.files,
-                                store: this.store,
-                                config: this.config
-                            }
-                        });
-                        fs.writeFile(`${ outputFile }`, output, (e: any): void => {
-                            if(e != null) {
-                                console.info(red(`Failed to write file ${ e }`));
-                            }
-                        });
-                    }
-                });
-            });
+        if(this.config?.output?.static) {
+            createStaticFiles(this.config, this.store, this.files, hb);
         }
     }
     public async copy(): Promise<void> {

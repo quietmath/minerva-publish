@@ -87,7 +87,7 @@ export const storeFiles = (files: string[], configs: ListConfig[]): JSONStore =>
             if(fs.statSync(f).isFile() && f.endsWith('.md')) {
                 const md: string = fs.readFileSync(f, { encoding: 'utf-8' });
                 const gray: any = matter(md);
-                if(!gray.draft) {
+                if(gray.data.draft == null || gray.data.draft == false) {
                     gray['filePath'] = f;
                     let sortKey: string = gray.data[sortColumn];
                     if(sortKey === undefined && f.indexOf('/') !== -1) {
