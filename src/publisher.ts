@@ -3,12 +3,13 @@ import * as fs from 'fs-extra';
 import * as hb from 'handlebars';
 import { blue, red } from 'chalk';
 import { JSONStore } from '@quietmath/moneta';
-import { PubConfig } from './schema';
+import { PubConfig, StaticConfig, ViewConfig } from './schema';
 import { buildFileTree, getFiles, getFilesFromDisc, storeFiles } from './file';
 import { registerAllPartials, registerAllHelpers, registerExternalHelpers } from './handlebars';
 import { buildOutline, getTemplateData, getMarkdownConverter } from './helpers';
 import { createListFiles } from './list';
 import { createFeeds } from './feed';
+import { Converter } from 'showdown';
 
 /**
  * @module quietmath/minerva-publish
@@ -25,11 +26,9 @@ export class Publisher {
         if(this.config.prefix === undefined) {
             this.config.prefix = process.cwd();
         }           
-        console.info(blue(`Prefix is ${ this.config.prefix }`));
         registerAllPartials(hb, this.config);
         registerAllHelpers(hb);
         if(this.config.helpers) {
-            console.log(this.config.helpers);
             registerExternalHelpers(hb, this.config);
         }
     }
@@ -48,11 +47,11 @@ export class Publisher {
     public outline(): void {
         if(this.config?.output?.outline) {
             this.summary = '# Summary\n\n';
-            const startKey = Object.keys(this.tree[0]).find((e: string) => e === this.config.source);
+            const startKey: string = Object.keys(this.tree[0]).find((e: string) => e === this.config.source);
             buildOutline(this, this.tree[0][startKey]);
             fs.writeFile(`${ this.config.prefix }/${ this.config.source }/SUMMARY.md`, this.summary, { encoding:'utf-8' })
-                .then(() => console.log(`Wrote summary file to ${ `${ this.config.prefix }/${ this.config.source }/SUMMARY.md` }`))
-                .catch((err) => console.info(red(`Error writing summary file: ${ err }`)));
+                .then((): void => console.log(`Wrote summary file to ${ `${ this.config.prefix }/${ this.config.source }/SUMMARY.md` }`))
+                .catch((err: any): void => console.info(red(`Error writing summary file: ${ err }`)));
         }
     }
     public feeds(): void {
@@ -70,19 +69,19 @@ export class Publisher {
         }
     }
     public toc(): void {
-        const outline = this.config?.output?.outline;
+        const outline: boolean = this.config?.output?.outline;
         if(outline) {
-            fs.readFile(`${ this.config.prefix }/${ this.config.source }/SUMMARY.md`, (err: Error, data: Buffer) => {
+            fs.readFile(`${ this.config.prefix }/${ this.config.source }/SUMMARY.md`, (err: Error, data: Buffer): void => {
                 if(err != null) {
                     console.info(red(`Unable to open file ${ this.config.prefix }/${ this.config.source }/SUMMARY.md: ${ err }`));
                 }
                 else {
-                    let md = data.toString('utf-8');
+                    let md: string = data.toString('utf-8');
                     md = md.replace(/\.md/ig, '.html');
-                    const c = getMarkdownConverter();
-                    const html = c.makeHtml(md);
-                    const template = hb.compile(html);
-                    const output = template({
+                    const c: Converter = getMarkdownConverter();
+                    const html: string = c.makeHtml(md);
+                    const template: any = hb.compile(html);
+                    const output: string = template({
                         _publisher: {
                             files: this.files,
                             store: this.store,
@@ -90,21 +89,19 @@ export class Publisher {
                         }
                     });
                     fs.writeFile(`${ this.config.prefix }/${ this.config.dest }/TOC.html`, output, { encoding:'utf-8' })
-                        .then(() => console.log(`Wrote TOC file to ${ `${ this.config.prefix }/${ this.config.dest }/TOC.html` }`))
-                        .catch((err) => console.info(red(`Error writing TOC: ${ err }`)));
+                        .then((): void => console.log(`Wrote TOC file to ${ `${ this.config.prefix }/${ this.config.dest }/TOC.html` }`))
+                        .catch((err: any): void => console.info(red(`Error writing TOC: ${ err }`)));
                 }
             });
         }
     }
     public view(): void {
         if(this.config?.output?.view) {
-            const viewConfig = this.config.output.view;
-            const templates = viewConfig.templates;
-            console.info(blue(`Current templates are ${ templates }`));
+            const viewConfig: ViewConfig = this.config.output.view;
+            const templates: string[] = viewConfig.templates;
             const files: any[] | string[] = getFiles(this.store, this.config?.output?.view, this.files);
-            console.info(blue(`Current file length is ${ files.length }`));
-            templates.forEach((tmpl: string) => {
-                console.info(blue(`Current template string is ${ tmpl }`));
+            
+            templates.forEach((tmpl: string): void => {
                 fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, tmplData: Buffer): void => {
                     if(err != null) {
                         console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
@@ -118,11 +115,10 @@ export class Publisher {
                                 .replace('.md','.html') }`;
                             console.info(blue(`Current output file is ${ outputFile }`));
                             const outputDir = `${ outputFile.substr(0, outputFile.lastIndexOf('/')) }`;
-                            console.info(`Current output directory is ${ outputDir }`);
                             await fs.ensureDir(outputDir);
-                            const d = getTemplateData(f, this.config);
-                            const template = hb.compile(tmplData.toString('utf-8'), { });
-                            const output = template({
+                            const d: any = getTemplateData(f, this.config);
+                            const template: any = hb.compile(tmplData.toString('utf-8'), { });
+                            const output: string = template({
                                 ...this.config.globals,
                                 ...d,
                                 _publisher: {
@@ -143,23 +139,21 @@ export class Publisher {
         }
     }
     public static(): void {
-        const staticConfig = this.config?.output?.static;
+        const staticConfig: StaticConfig = this.config?.output?.static;
         if(staticConfig) {
-            const templates = staticConfig.templates;
-            console.info(blue(`Current templates are ${ templates }`));
+            const templates: string[] = staticConfig.templates;
             templates.forEach((tmpl: string): void => {
-                console.info(blue(`Current template string is ${ tmpl }`));
                 fs.readFile(`${ this.config.prefix }/${ tmpl }`, (err: Error, tmplData: Buffer): void => {
-                    const fileName = tmpl.split('/').reverse()[0].replace('.hbs', '.html');
+                    const fileName: string = tmpl.split('/').reverse()[0].replace('.hbs', '.html');
                     if(err != null) {
                         console.info(red(`Unable to open file ${ this.config.prefix }/${ tmpl }: ${ err }`));
                     }
                     else {
                         const outputFile = `${ this.config.prefix }/${ this.config.dest }/${ fileName }`;
                         console.info(blue(`Current output file is ${ outputFile }`));
-                        const html = tmplData.toString('utf-8');
-                        const template = hb.compile(html, { });
-                        const output = template({
+                        const html: string = tmplData.toString('utf-8');
+                        const template: any = hb.compile(html, { });
+                        const output: string = template({
                             ...this.config.globals,
                             ...{ content: html },
                             _publisher: {
@@ -181,16 +175,16 @@ export class Publisher {
     public async copy(): Promise<void> {
         if(this.config.assets && this.config.assets.length > 0) {
             await fs.ensureDir(`${ this.config.prefix }/${ this.config.dest }`);
-            this.config.assets.forEach((asset) => {
-                const asst = asset.split('/').pop();
+            this.config.assets.forEach((asset): void => {
+                const asst: string = asset.split('/').pop();
                 fs.copy(`${ this.config.prefix  }/${ asset }`, `${ this.config.prefix  }/${ this.config.dest }/${ asst }`)
-                    .then(() => console.log(`Finished copying to ${ this.config.prefix  }/${ this.config.dest }/${ asst }`))
-                    .catch(err => console.info(red(`Failed to copy to ${ this.config.prefix  }/${ this.config.dest }/${ asst } ${ err }`)));
+                    .then((): void => console.log(`Finished copying to ${ this.config.prefix  }/${ this.config.dest }/${ asst }`))
+                    .catch((err: any): void => console.info(red(`Failed to copy to ${ this.config.prefix  }/${ this.config.dest }/${ asst } ${ err }`)));
             });
             if(fs.existsSync(`${ this.config.prefix  }/serve.json`)) {
                 fs.copyFile(`${ this.config.prefix  }/serve.json`, `${ this.config.prefix  }/${ this.config.dest }/serve.json`)
-                    .then(() => console.log(`Finished copying to ${ this.config.prefix  }/serve.json`))
-                    .catch(err => console.info(red(`Failed to copy to ${ this.config.prefix  }/${ this.config.dest }/serve.json ${ err }`)));
+                    .then((): void => console.log(`Finished copying to ${ this.config.prefix  }/serve.json`))
+                    .catch((err: any): void => console.info(red(`Failed to copy to ${ this.config.prefix  }/${ this.config.dest }/serve.json ${ err }`)));
             }
         }
     }

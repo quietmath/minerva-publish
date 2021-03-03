@@ -57,17 +57,17 @@ export const getFiles = (store: JSONStore, config: ListConfig | ViewConfig | RSS
     if(store != null) {
         const pages: ResultSet = store.select('pages');
         if((config as ListConfig)?.order?.direction == 'desc') {
-            files = (pages.value as any[]).sort((a: any, b: any) => (b.result_key as string).localeCompare(a.result_key as string));
+            files = (pages.value as any[]).sort((a: any, b: any): number => (b.result_key as string).localeCompare(a.result_key as string));
         }
         else {
-            files = (pages.value as any[]).sort((a: any, b: any) => (a.result_key as string).localeCompare(b.result_key as string));
+            files = (pages.value as any[]).sort((a: any, b: any): number => (a.result_key as string).localeCompare(b.result_key as string));
         }
     }
     else {
         if((config as ListConfig)?.order?.direction != null) {
             console.warn(yellow(`The [orderDirection] of ${ (config as ListConfig)?.order?.direction } is not null, yet the files are not contained in storage. Falling back to the default.`));
         }
-        files = files.filter((e: string) => e.endsWith('.md'));
+        files = files.filter((e: string): boolean => e.endsWith('.md'));
     }
     return files;
 };
@@ -77,7 +77,7 @@ export const buildFileTree = (files: string[]): any => {
 };
 
 export const storeFiles = (files: string[], configs: ListConfig[]): JSONStore => {
-    const config = (configs.length > 0) ? configs[0] : null;
+    const config: ListConfig = (configs.length > 0) ? configs[0] : null;
     const store: JSONStore = new JSONStore('minerva.json');
     store.create('pages');
     const sortColumn: string = config?.order?.orderBy;

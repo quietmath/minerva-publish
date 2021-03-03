@@ -41,8 +41,8 @@ export const registerAllHelpers = (hb: any): void => {
 export const registerExternalHelpers = (hb: any, config: PubConfig): void => {
     console.info(`Loading external helper file ${ config.prefix }/${ config.helpers }`);
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const helpers = require(`${ config.prefix }/${ config.helpers }`);
-    const keys = Object.keys(helpers);
+    const helpers: any = require(`${ config.prefix }/${ config.helpers }`);
+    const keys: string[] = Object.keys(helpers);
     for(let i = 0; i < keys.length; i++) {
         hb.registerHelper(keys[i], helpers[keys[i]]);
     }

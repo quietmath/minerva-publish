@@ -27,7 +27,7 @@ else {
                 pub.view();
                 pub.static();
                 pub.copy();
-            }).catch((err: any) => {
+            }).catch((err: any): void => {
                 console.error(red(`Could not publish files: ${ err }`));
             });
     }
