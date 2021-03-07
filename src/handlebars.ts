@@ -29,7 +29,7 @@ const defaultOr = (val: string, defaultVal: string): string => {
     return val;
 };
 
-const truncateWordWithHTML = (content: string, words: number): string => {
+const truncateWordsWithHTML = (content: string, words: number): string => {
     return s(content).truncateWordsWithHtml(words).toString();
 };
 
@@ -41,7 +41,7 @@ export const registerAllHelpers = (hb: any): void => {
     hb.registerHelper('range', range);
     hb.registerHelper('formatRSSDate', formatRSSDate);
     hb.registerHelper('defaultOr', defaultOr);
-    hb.registerHelper('truncateWordWithHTML', truncateWordWithHTML);
+    hb.registerHelper('truncateWordsWithHTML', truncateWordsWithHTML);
 };
 
 export const registerExternalHelpers = (hb: any, config: PubConfig): void => {
