@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import * as moment from 'moment';
+import { s } from '@quietmath/proto';
 import { PubConfig } from './schema';
 
 /**
@@ -28,6 +29,10 @@ const defaultOr = (val: string, defaultVal: string): string => {
     return val;
 };
 
+const truncateWordWithHTML = (content: string, words: number): string => {
+    return s(content).truncateWordsWithHtml(words).toString();
+};
+
 export const registerAllPartials = (hb: any, config: PubConfig): void => {
     hb.registerPartial('layout', fs.readFileSync(`${ config.prefix }/${ config.layout }`, 'utf8'));
 };
@@ -36,6 +41,7 @@ export const registerAllHelpers = (hb: any): void => {
     hb.registerHelper('range', range);
     hb.registerHelper('formatRSSDate', formatRSSDate);
     hb.registerHelper('defaultOr', defaultOr);
+    hb.registerHelper('truncateWordWithHTML', truncateWordWithHTML);
 };
 
 export const registerExternalHelpers = (hb: any, config: PubConfig): void => {
