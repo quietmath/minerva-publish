@@ -30,6 +30,7 @@ const defaultOr = (val: string, defaultVal: string): string => {
 };
 
 const truncateWordsWithHTML = (content: string, words: number): string => {
+    console.log(s(content));
     return s(content).truncateWordsWithHtml(words).toString();
 };
 

@@ -1,6 +1,6 @@
 {
   "name": "@quietmath/minerva-publish",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "Static site generator and package for converting Markdown files to HTML.",
   "main": "./dist/index.js",
   "types": "./dist/index",
@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@quietmath/moneta": "^0.2.3",
-    "@quietmath/proto": "^1.2.0",
+    "@quietmath/proto": "^1.2.1",
     "chalk": "^4.1.0",
     "fs-extra": "^9.0.0",
     "glob": "^7.1.6",
