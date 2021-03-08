@@ -77,7 +77,7 @@ export const buildFileTree = (files: string[]): any => {
 };
 
 export const storeFiles = (files: string[], configs: ListConfig[]): JSONStore => {
-    const config: ListConfig = (configs.length > 0) ? configs[0] : null;
+    const config: ListConfig = (configs != null && configs.length > 0) ? configs[0] : null;
     const store: JSONStore = new JSONStore('minerva.json');
     store.create('pages');
     const sortColumn: string = config?.order?.orderBy;
