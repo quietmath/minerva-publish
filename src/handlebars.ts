@@ -40,7 +40,10 @@ export const registerAllPartials = (hb: any, config: PubConfig): void => {
 export const registerExternalPartials = (hb: any, config: PubConfig): void => {
     console.info(`Loading external partials ${ JSON.stringify(config.partials) }`);   
     for(let i = 0; i < config.partials.length; i++) {
-        const name = config.partials[i].split('/').pop();
+        const name = config.partials[i].split('/')
+            .pop()
+            .split('.')
+            .shift();
         hb.registerPartial(name, fs.readFileSync(`${ config.prefix }/${ config.partials[i] }`, 'utf8'));
     }
 };
