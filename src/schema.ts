@@ -7,6 +7,7 @@ export interface PubConfig {
     source: string;
     dest: string;
     layout: string;
+    partials?: string[];
     assets: string[];
     output: OutputConfig;
     helpers: string;

@@ -5,7 +5,7 @@ import { blue, red } from 'chalk';
 import { JSONStore } from '@quietmath/moneta';
 import { PubConfig } from './schema';
 import { buildFileTree, getFilesFromDisc, storeFiles } from './file';
-import { registerAllPartials, registerAllHelpers, registerExternalHelpers } from './handlebars';
+import { registerAllPartials, registerAllHelpers, registerExternalHelpers, registerExternalPartials } from './handlebars';
 import { createLists } from './list';
 import { createFeeds } from './feed';
 import { createOutline } from './outline';
@@ -30,6 +30,9 @@ export class Publisher {
         }           
         registerAllPartials(hb, this.config);
         registerAllHelpers(hb);
+        if(this.config.partials) {
+            registerExternalPartials(hb, this.config);
+        }
         if(this.config.helpers) {
             registerExternalHelpers(hb, this.config);
         }

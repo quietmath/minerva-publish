@@ -37,6 +37,14 @@ export const registerAllPartials = (hb: any, config: PubConfig): void => {
     hb.registerPartial('layout', fs.readFileSync(`${ config.prefix }/${ config.layout }`, 'utf8'));
 };
 
+export const registerExternalPartials = (hb: any, config: PubConfig): void => {
+    console.info(`Loading external partials ${ JSON.stringify(config.partials) }`);   
+    for(let i = 0; i < config.partials.length; i++) {
+        const name = config.partials[i].split('/').pop();
+        hb.registerPartial(name, fs.readFileSync(`${ config.prefix }/${ config.partials[i] }`, 'utf8'));
+    }
+};
+
 export const registerAllHelpers = (hb: any): void => {
     hb.registerHelper('range', range);
     hb.registerHelper('formatRSSDate', formatRSSDate);
