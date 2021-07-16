@@ -36,17 +36,17 @@ const truncateWordsWithHTML = (content: string, words: number): string => {
 
 export const getFileContents = (files: any[] | string[], config: any, block: any): any => {
     let acc: any = '';
-    files.forEach((file: any | string, idx: number): void => {
+    files.forEach((file: any | string): void => {
         const result = getTemplateData(file, config);
-        acc += block.fn(result)
+        acc += block.fn(result);
     });
     return acc;
-}
+};
 
 export const getFileContent = (name: string, file: any, config: any, options: any): any => {
     const result = getTemplateData(file, config);
     options.data.root[name] = result;
-}
+};
 
 export const registerAllPartials = (hb: any, config: PubConfig): void => {
     hb.registerPartial('layout', fs.readFileSync(`${ config.prefix }/${ config.layout }`, 'utf8'));
