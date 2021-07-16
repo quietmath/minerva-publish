@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as moment from 'moment';
 import { s } from '@quietmath/proto';
 import { PubConfig } from './schema';
+import { getTemplateData } from './helpers';
 
 /**
  * @module quietmath/minerva-publish
@@ -32,6 +33,20 @@ const defaultOr = (val: string, defaultVal: string): string => {
 const truncateWordsWithHTML = (content: string, words: number): string => {
     return s(content).truncateWordsWithHtml(words).toString();
 };
+
+export const getFileContents = (files: any[] | string[], config: any, block: any): any => {
+    let acc: any = '';
+    files.forEach((file: any | string, idx: number): void => {
+        const result = getTemplateData(file, config);
+        acc += block.fn(result)
+    });
+    return acc;
+}
+
+export const getFileContent = (name: string, file: any, config: any, options: any): any => {
+    const result = getTemplateData(file, config);
+    options.data.root[name] = result;
+}
 
 export const registerAllPartials = (hb: any, config: PubConfig): void => {
     hb.registerPartial('layout', fs.readFileSync(`${ config.prefix }/${ config.layout }`, 'utf8'));
