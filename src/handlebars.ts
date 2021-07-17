@@ -34,7 +34,7 @@ const truncateWordsWithHTML = (content: string, words: number): string => {
     return s(content).truncateWordsWithHtml(words).toString();
 };
 
-export const getFileContents = (files: any[] | string[], config: any, block: any): any => {
+export const getAll = (files: any[], config: any, block: any): any => {
     let acc: any = '';
     files.forEach((file: any | string): void => {
         const result = getTemplateData(file, config);
@@ -43,9 +43,20 @@ export const getFileContents = (files: any[] | string[], config: any, block: any
     return acc;
 };
 
-export const getFileContent = (name: string, file: any, config: any, options: any): any => {
+export const get = (key: string, value: string, files: any[], config: any, block: any): any => {
+    const results = files.filter((e: any): any => e[key] = value);
+    let acc: any = '';
+    results.forEach((file: any): void => {
+        const result = getTemplateData(file, config);
+        acc += block.fn(result);
+    });
+    return acc;
+};
+
+export const getOne = (varName: string, key: string, value: string, files: any[], config: any, options: any): any => {
+    const file = files.find((e: any): any => e[key] = value);
     const result = getTemplateData(file, config);
-    options.data.root[name] = result;
+    options.data.root[varName] = result;
 };
 
 export const registerAllPartials = (hb: any, config: PubConfig): void => {
@@ -68,6 +79,9 @@ export const registerAllHelpers = (hb: any): void => {
     hb.registerHelper('formatRSSDate', formatRSSDate);
     hb.registerHelper('defaultOr', defaultOr);
     hb.registerHelper('truncateWordsWithHTML', truncateWordsWithHTML);
+    hb.registerHelper('getAll', getAll);
+    hb.registerHelper('get', get);
+    hb.registerHelper('getOne', getOne);
 };
 
 export const registerExternalHelpers = (hb: any, config: PubConfig): void => {
